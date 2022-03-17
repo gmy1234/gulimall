@@ -85,6 +85,17 @@
             <artifactId>spring-cloud-loadbalancer</artifactId>
             <version>3.1.1</version>
         </dependency>
+        <!-- 使用 nacos 配置中心来做配置管理 -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+        </dependency>
+        <!-- 配置中心的bootstrap.yaml文件不管用，引入依赖-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+            <version>3.1.1</version>
+        </dependency>
 
     </dependencies>
 
