@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: gulimall-gateway
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        file-extension: yaml
+        # coupon 模块下的命名空间  必须是 ID
+        namespace: 39eb0827-f13e-4d1d-93ac-3c155ff6372a
