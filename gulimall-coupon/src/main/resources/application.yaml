@@ -7,7 +7,13 @@ spring:
     password: root
     url: jdbc:mysql://192.168.154.128:3306/gulimall_sms
     driver-class-name: com.mysql.cj.jdbc.Driver
-
+  cloud:
+    # 配置nacos 的地址
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+  application:
+    name: gulimall-coupon
 
 # mybatis-plus
 mybatis-plus:
@@ -15,3 +21,4 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
+
