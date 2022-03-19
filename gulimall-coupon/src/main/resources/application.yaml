@@ -11,7 +11,7 @@
 #    # 配置nacos 的地址
 #    nacos:
 #      discovery:
-#        server-addr: 10.105.30.7:8848
+#        server-addr: 192.168.154.128:8848
 #  application:
 #    name: gulimall-coupon
 #
@@ -21,4 +21,4 @@
 #  global-config:
 #    db-config:
 #      id-type: auto
-
+#
