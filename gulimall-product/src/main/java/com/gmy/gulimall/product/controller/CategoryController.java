@@ -1,6 +1,7 @@
 package com.gmy.gulimall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,14 +32,14 @@ public class CategoryController {
     private CategoryService categoryService;
 
     /**
-     * 列表
+     * 查询出所有的商品分类，并且封装成树形结构
      */
-    @RequestMapping("/list")
+    @RequestMapping("/getAllCategory")
     // @RequiresPermissions("product:category:list")
-    public R list(@RequestParam Map<String, Object> params){
-        PageUtils page = categoryService.queryPage(params);
+    public R getAllCategoryList( ){
+        List<CategoryEntity> categoryList = categoryService.getAllCategoryWithTree();
 
-        return R.ok().put("page", page);
+        return R.ok().put("allCategory", categoryList);
     }
 
 

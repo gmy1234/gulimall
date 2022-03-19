@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: gulimall-product
+  cloud:
+    nacos:
+      config:
+        server-addr: 192.168.154.128:8848
+        file-extension: yaml
+        # coupon  模块下的命名空间，必须是 ID
+        namespace: f6e698fd-09ed-467c-8b0a-d02d9222171f
+        group: DEFAULT_GROUP
+        extension-configs[0]:
+          data-id: datasource.yaml
+          group: dev
+          refresh: true   # 是否动态刷新，默认为false
+        extension-configs[1]:
+          data-id: MyBatis.yaml
+          group: dev
+          refresh: true
+        extension-configs[2]:
+            data-id: other.yaml
+            group: dev
+            refresh: true
+
+
