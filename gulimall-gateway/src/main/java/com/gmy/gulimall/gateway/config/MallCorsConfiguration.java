@@ -26,7 +26,7 @@ public class MallCorsConfiguration {
         corsConfiguration.addAllowedMethod("*");
         corsConfiguration.addAllowedOriginPattern("*");
         corsConfiguration.setAllowCredentials(true);
-
+ 
         source.registerCorsConfiguration("/**", corsConfiguration);
         return new CorsWebFilter(source);
     }
