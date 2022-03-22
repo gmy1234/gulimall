@@ -18,13 +18,20 @@ spring:
           uri: https://www.qq.com
           predicates:
             - Query=url, qq
-
+        # 商品的网关
         - id: product_route
           uri: lb://gulimall-product
           predicates:
             - Path=/api/product/**
           filters:
             - RewritePath=/api/?(?<segment>.*), /$\{segment}
+        # 第三方服务的网关
+        - id: third_party_route
+          uri: lb://gulimall-third-party
+          predicates:
+            - Path=/api/thirdparty/**
+          filters:
+            - RewritePath=/api/thirdparty/?(?<segment>.*), /$\{segment}
 
         - id: admin_route
           uri: lb://renren-fast

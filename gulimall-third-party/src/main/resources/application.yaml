@@ -5,5 +5,12 @@ spring:
     nacos:
       discovery:
         server-addr: 192.168.154.128:8848
+    # OSS云存储对象配置
+    alicloud:
+      access-key: LTAI5tLqPcndgvCmQ6hnqch9
+      secret-key: s1K8xXFvcZnAbd37RGlRBRHHSP0ztE
+      oss:
+        endpoint: oss-cn-beijing.aliyuncs.com
+        bucket: gulimall-gmy
 server:
   port: 30000
