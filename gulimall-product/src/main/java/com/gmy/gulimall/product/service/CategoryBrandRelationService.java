@@ -28,6 +28,18 @@ public interface CategoryBrandRelationService extends IService<CategoryBrandRela
 
     void saveDetail(CategoryBrandRelationEntity categoryBrandRelation);
 
+    /**
+     * 级联更新 品牌
+     * @param brandId 品牌Id
+     * @param name 品牌名
+     */
     void updateBrand(Long brandId, String name);
+
+    /**
+     * 级联更新 分类
+     * @param catId 分类Id
+     * @param name 分类名
+     */
+    void updateCategory(Long catId, String name);
 }
 

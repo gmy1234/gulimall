@@ -19,6 +19,7 @@ import com.gmy.common.utils.Query;
 import com.gmy.gulimall.product.dao.CategoryBrandRelationDao;
 import com.gmy.gulimall.product.entity.CategoryBrandRelationEntity;
 import com.gmy.gulimall.product.service.CategoryBrandRelationService;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service("categoryBrandRelationService")
@@ -78,6 +79,12 @@ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandR
         wrapper.eq(CategoryBrandRelationEntity::getBrandId, brandId);
 
         this.update(categoryBrandRelation, wrapper);
+    }
+
+    @Transactional
+    @Override
+    public void updateCategory(Long catId, String name) {
+        this.baseMapper.updateCategory(catId, name);
     }
 
 }
