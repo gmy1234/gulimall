@@ -2,9 +2,7 @@ package com.gmy.gulimall.product.service.impl;
 
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -66,6 +64,25 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         // TODO: 1、检查当前删除的菜单，是否被别的地方引用
 
         this.baseMapper.deleteBatchIds(asList);
+    }
+
+    @Override
+    public Long[] findCatelogPath(Long catelogId) {
+        ArrayList<Long> paths = new ArrayList<>();
+        List<Long> parentPath = findParentPath(catelogId, paths);
+        Collections.reverse(parentPath);
+
+        return parentPath.toArray(new Long[0]);
+    }
+
+    private List<Long> findParentPath(Long catelogId, List<Long> paths){
+        // 收集当前节点Id
+        paths.add(catelogId);
+        CategoryEntity byId = this.getById(catelogId);
+        if (byId.getParentCid() != 0){
+            findParentPath(byId.getParentCid(), paths);
+        }
+        return paths;
     }
 
     /**
