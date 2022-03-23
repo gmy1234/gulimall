@@ -31,29 +31,27 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
 
     @Override
     public PageUtils queryPage(Map<String, Object> params, Long categoryId) {
+        final String key = (String) params.get("key");
+        // select * from pms_attr_group  where catelog_id = ?
+        // and (attr_group_id = key or attr_group_name = key)
+        final LambdaQueryWrapper<AttrGroupEntity> wrapper = new LambdaQueryWrapper<>();
+        // 模糊查询 ；不为空
+        if (StringUtils.hasText(key)){
+            wrapper.and( obj ->{
+                obj.eq(AttrGroupEntity::getAttrGroupId, key)
+                        .or()
+                        .like(AttrGroupEntity::getAttrGroupName, key);
+            });
+        }
         if (categoryId == 0) {
             final IPage<AttrGroupEntity> page = this.page(
                     new Query<AttrGroupEntity>().getPage(params),
-                    new QueryWrapper<AttrGroupEntity>(null)
+                    wrapper
             );
             return new PageUtils(page);
         }else {
-            final String key = (String) params.get("key");
-            // select * from pms_attr_group  where catelog_id = ?
-            // and (attr_group_id = key or attr_group_name = key)
-
-            final LambdaQueryWrapper<AttrGroupEntity> wrapper = new LambdaQueryWrapper<>();
             // 三级分类Id
             wrapper.eq(AttrGroupEntity::getCatelogId, categoryId);
-
-            if (StringUtils.hasText(key)){
-                wrapper.and( obj ->{
-                    obj.eq(AttrGroupEntity::getAttrGroupId, key)
-                            .or()
-                            .like(AttrGroupEntity::getAttrGroupName, key);
-                });
-            }
-
             final IPage<AttrGroupEntity> page = this.page(
                     new Query<AttrGroupEntity>().getPage(params),
                     wrapper
