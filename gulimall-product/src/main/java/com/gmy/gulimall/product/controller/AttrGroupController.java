@@ -1,9 +1,13 @@
 package com.gmy.gulimall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import com.gmy.gulimall.product.entity.AttrEntity;
+import com.gmy.gulimall.product.service.AttrService;
 import com.gmy.gulimall.product.service.CategoryService;
+import com.gmy.gulimall.product.vo.AttrGroupRelationVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +37,28 @@ public class AttrGroupController {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private AttrService attrService;
+
+    // 查询分组关联属性
+    @RequestMapping("/{attrgroupId}/attr/relation")
+    // @RequiresPermissions("product:attrgroup:list")
+    public R attrRelation(@PathVariable("attrgroupId") Long attrgroupId){
+
+        List<AttrEntity> entities = attrService.getRelationAttr(attrgroupId);
+        return R.ok().put("data", entities);
+    }
+
+    @RequestMapping("/attr/relation/delete")
+    // @RequiresPermissions("product:attrgroup:list")
+    public R deleteRelation(@RequestBody() AttrGroupRelationVo[] vos){
+
+        attrService.deleteRelationAttr(vos);
+        return R.ok();
+    }
+
+
     /**
      * 列表
      */

@@ -3,9 +3,11 @@ package com.gmy.gulimall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.gmy.common.utils.PageUtils;
 import com.gmy.gulimall.product.entity.AttrEntity;
+import com.gmy.gulimall.product.vo.AttrGroupRelationVo;
 import com.gmy.gulimall.product.vo.AttrRespVo;
 import com.gmy.gulimall.product.vo.AttrVo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,5 +44,14 @@ public interface AttrService extends IService<AttrEntity> {
     AttrRespVo getAttrInfo(Long attrId);
 
     void updateAttrVo(AttrVo attrVo);
+
+    /**
+     * 根据分组Id ，找出关联的所有属性
+     * @param attrgroupId 分组Id
+     * @return 属性
+     */
+    List<AttrEntity> getRelationAttr(Long attrgroupId);
+
+    void deleteRelationAttr(AttrGroupRelationVo[] vos);
 }
 
