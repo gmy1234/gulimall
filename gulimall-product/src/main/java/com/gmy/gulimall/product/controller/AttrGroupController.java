@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.gmy.gulimall.product.entity.AttrEntity;
+import com.gmy.gulimall.product.service.AttrAttrgroupRelationService;
 import com.gmy.gulimall.product.service.AttrService;
 import com.gmy.gulimall.product.service.CategoryService;
 import com.gmy.gulimall.product.vo.AttrGroupRelationVo;
@@ -41,6 +42,9 @@ public class AttrGroupController {
     @Autowired
     private AttrService attrService;
 
+    @Autowired
+    private AttrAttrgroupRelationService relationService;
+
     // 查询分组关联属性
     @RequestMapping("/{attrgroupId}/attr/relation")
     // @RequiresPermissions("product:attrgroup:list")
@@ -59,7 +63,16 @@ public class AttrGroupController {
         PageUtils page = attrService.getNoRelationAttr(params, attrgroupId);
         return R.ok().put("data", page);
     }
-    
+
+
+    @RequestMapping("/attr/relation")
+    // @RequiresPermissions("product:attrgroup:list")
+    public R addRelation(@RequestBody() AttrGroupRelationVo[] vos){
+
+        relationService.addRelations(vos);
+        return R.ok();
+    }
+
     @RequestMapping("/attr/relation/delete")
     // @RequiresPermissions("product:attrgroup:list")
     public R deleteRelation(@RequestBody() AttrGroupRelationVo[] vos){
