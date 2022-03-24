@@ -3,6 +3,7 @@ package com.gmy.gulimall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.gmy.common.utils.PageUtils;
 import com.gmy.gulimall.product.entity.AttrEntity;
+import com.gmy.gulimall.product.vo.AttrRespVo;
 import com.gmy.gulimall.product.vo.AttrVo;
 
 import java.util.Map;
@@ -31,5 +32,14 @@ public interface AttrService extends IService<AttrEntity> {
      * @return 集合
      */
     PageUtils queryBaseAttrPage(Map<String, Object> params, Long categoryId);
+
+    /**
+     * 规格参数 修改时回显信息，
+     * @param attrId 属性Id
+     * @return 信息
+     */
+    AttrRespVo getAttrInfo(Long attrId);
+
+    void updateAttrVo(AttrVo attrVo);
 }
 

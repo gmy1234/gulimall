@@ -9,6 +9,7 @@ import com.gmy.gulimall.product.entity.AttrAttrgroupRelationEntity;
 import com.gmy.gulimall.product.entity.AttrGroupEntity;
 import com.gmy.gulimall.product.entity.CategoryEntity;
 import com.gmy.gulimall.product.service.AttrAttrgroupRelationService;
+import com.gmy.gulimall.product.service.CategoryService;
 import com.gmy.gulimall.product.vo.AttrRespVo;
 import com.gmy.gulimall.product.vo.AttrVo;
 import org.springframework.beans.BeanUtils;
@@ -29,6 +30,7 @@ import com.gmy.common.utils.Query;
 import com.gmy.gulimall.product.dao.AttrDao;
 import com.gmy.gulimall.product.entity.AttrEntity;
 import com.gmy.gulimall.product.service.AttrService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 
@@ -43,6 +45,9 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
     @Autowired
     CategoryDao categoryDao;
+
+    @Autowired
+    CategoryService categoryService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -99,7 +104,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
                     // 设置分组的名字：
                     // 通过属性分组关联表
                     final AttrAttrgroupRelationEntity arrtId = relationDao.selectOne(new LambdaQueryWrapper<AttrAttrgroupRelationEntity>()
-                            .eq(AttrAttrgroupRelationEntity::getAttrGroupId, attrEntity.getAttrId()));
+                            .eq(AttrAttrgroupRelationEntity::getAttrId, attrEntity.getAttrId()));
                     if (arrtId != null) {
                         final AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(arrtId.getAttrGroupId());
                         attrRespVo.setGroupName(attrGroupEntity.getAttrGroupName());
@@ -115,6 +120,61 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
         pageUtils.setList(response);
         return pageUtils;
+    }
+
+    @Override
+    public AttrRespVo getAttrInfo(Long attrId) {
+
+        AttrRespVo respVo = new AttrRespVo();
+        final AttrEntity attrEntity = this.baseMapper.selectById(attrId);
+        BeanUtils.copyProperties(attrEntity, respVo);
+        // 设置分组信息
+        final LambdaQueryWrapper<AttrAttrgroupRelationEntity> wrapper = new LambdaQueryWrapper<AttrAttrgroupRelationEntity>()
+                .eq(AttrAttrgroupRelationEntity::getAttrId, attrId);
+        final AttrAttrgroupRelationEntity relation = relationDao.selectOne(wrapper);
+        if (relation != null) {
+            final Long attrGroupId = relation.getAttrGroupId();
+            respVo.setAttrGroupId(attrGroupId);
+            final AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(relation.getAttrGroupId());
+            if (attrGroupEntity != null) {
+                respVo.setGroupName(attrGroupEntity.getAttrGroupName());
+            }
+        }
+
+        // 设置分类信息
+        final Long catelogId = attrEntity.getCatelogId();
+
+        final Long[] catelogPath = categoryService.findCatelogPath(catelogId);
+        respVo.setCatelogPath(catelogPath);
+        final CategoryEntity categoryEntity = categoryDao.selectById(catelogId);
+        if (categoryEntity != null) {
+            respVo.setCatelogName(categoryEntity.getName());
+        }
+        return respVo;
+    }
+
+    @Override
+    @Transactional
+    public void updateAttrVo(AttrVo attrVo) {
+        final AttrEntity attrEntity = new AttrEntity();
+        BeanUtils.copyProperties(attrVo, attrEntity);
+        this.baseMapper.updateById(attrEntity);
+
+        // 修改分组关联：
+        final LambdaQueryWrapper<AttrAttrgroupRelationEntity> wrapper = new LambdaQueryWrapper<AttrAttrgroupRelationEntity>()
+                .eq(AttrAttrgroupRelationEntity::getAttrId, attrVo.getAttrId());
+        final AttrAttrgroupRelationEntity relationEntity = new AttrAttrgroupRelationEntity();
+        relationEntity.setAttrGroupId(attrVo.getAttrGroupId());
+        relationEntity.setAttrId(attrVo.getAttrId());
+
+        final Long aLong = relationDao.selectCount(wrapper);
+        // 修改操作
+        if (aLong > 0){
+            relationDao.update(relationEntity, wrapper);
+        }else {
+            // 新增操作
+            relationDao.insert(relationEntity);
+        }
     }
 
 }
