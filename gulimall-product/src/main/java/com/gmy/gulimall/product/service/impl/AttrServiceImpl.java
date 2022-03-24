@@ -1,5 +1,6 @@
 package com.gmy.gulimall.product.service.impl;
 
+import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.gmy.common.ProductConstant;
 import com.gmy.gulimall.product.dao.AttrAttrgroupRelationDao;
@@ -211,7 +212,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         final LambdaQueryWrapper<AttrAttrgroupRelationEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(AttrAttrgroupRelationEntity::getAttrGroupId, attrgroupId);
         final List<AttrAttrgroupRelationEntity> entities = relationDao.selectList(wrapper);
-        if (entities.size() != 0){
+        if (CollectionUtils.isNotEmpty(entities)){
             final List<Long> attrEntites = entities.stream()
                     .map(AttrAttrgroupRelationEntity::getAttrId)
                     .collect(Collectors.toList());
@@ -232,5 +233,46 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
                 }).collect(Collectors.toList());
         relationDao.deletedBatch(entities);
     }
+
+    @Override
+    public PageUtils getNoRelationAttr(Map<String, Object> params, Long attrgroupId) {
+        // 1、当前分组 只能关联自己所属的分类 里边的所有属性
+        final AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(attrgroupId);
+        final Long catelogId = attrGroupEntity.getCatelogId();
+
+        // 2、当前分组只能关联背的分组没有引用的属性
+        // 2.1 找到当前分类下的其他分组，
+        final LambdaQueryWrapper<AttrGroupEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AttrGroupEntity::getCatelogId, catelogId);
+        final List<AttrGroupEntity> groups = attrGroupDao.selectList(wrapper);
+        final LambdaQueryWrapper<AttrAttrgroupRelationEntity> wrapper1 = new LambdaQueryWrapper<>();
+        final List<Long> collect = groups.stream()
+                .map(AttrGroupEntity::getAttrGroupId).collect(Collectors.toList());
+
+        // 2.2 这新分组关联的属性
+        wrapper1.in(AttrAttrgroupRelationEntity::getAttrGroupId, collect);
+        final List<AttrAttrgroupRelationEntity> groupId = relationDao.selectList(wrapper1);
+        final List<Long> attrIds = groupId.stream()
+                .map(AttrAttrgroupRelationEntity::getAttrId)
+                .collect(Collectors.toList());
+        // 2.3： 移除
+        final QueryWrapper<AttrEntity> queryWrapper = new QueryWrapper<AttrEntity>()
+                .eq("catelog_id", catelogId)
+                .eq("attr_type", ProductConstant.AttrEnum.ATTR_TYPE_BASE.getCode());
+        if (CollectionUtils.isNotEmpty(attrIds)){
+            queryWrapper.notIn("attr_id", attrIds);
+        }
+
+        final String key = (String) params.get("key");
+        if (StringUtils.hasText(key)){
+            queryWrapper.and( (w) ->{
+                w.eq("attr_id", key).or().eq("attr_name", key);
+            });
+        }
+
+        final IPage<AttrEntity> page = this.page(new Query<AttrEntity>().getPage(params), queryWrapper);
+        return new PageUtils(page);
+    }
+
 
 }

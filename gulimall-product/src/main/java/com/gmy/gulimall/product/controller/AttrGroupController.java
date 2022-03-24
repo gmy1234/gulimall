@@ -50,6 +50,16 @@ public class AttrGroupController {
         return R.ok().put("data", entities);
     }
 
+    // 查询分组没有关联的属性
+    @RequestMapping("/{attrgroupId}/noattr/relation")
+    // @RequiresPermissions("product:attrgroup:list")
+    public R attrNoRelation(@RequestParam Map<String, Object> params,
+                            @PathVariable("attrgroupId") Long attrgroupId){
+
+        PageUtils page = attrService.getNoRelationAttr(params, attrgroupId);
+        return R.ok().put("data", page);
+    }
+    
     @RequestMapping("/attr/relation/delete")
     // @RequiresPermissions("product:attrgroup:list")
     public R deleteRelation(@RequestBody() AttrGroupRelationVo[] vos){
