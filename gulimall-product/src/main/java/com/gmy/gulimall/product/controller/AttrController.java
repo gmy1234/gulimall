@@ -29,17 +29,17 @@ public class AttrController {
     private AttrService attrService;
 
     /**
-     * 列表
+     * 获取基本属性属性
      */
-    @GetMapping("/base/list/{categoryId}")
+    @GetMapping("/{attrtype}/list/{categoryId}")
     // @RequiresPermissions("product:attr:list")
     public R baseAttrList(@RequestParam Map<String, Object> params,
-                          @PathVariable("categoryId") Long categoryId) {
+                          @PathVariable("categoryId") Long categoryId,
+                          @PathVariable("attrtype") String type) {
 
-        PageUtils page = attrService.queryBaseAttrPage(params, categoryId);
+        PageUtils page = attrService.queryBaseAttrPage(params, categoryId, type);
         return R.ok().put("page", page);
     }
-
 
 
         /**

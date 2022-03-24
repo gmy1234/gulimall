@@ -29,9 +29,10 @@ public interface AttrService extends IService<AttrEntity> {
      * 查询规格参数列表
      * @param params 模糊查询
      * @param categoryId 分类Id
+     * @param type 销售属性 还是 基本属性
      * @return 集合
      */
-    PageUtils queryBaseAttrPage(Map<String, Object> params, Long categoryId);
+    PageUtils queryBaseAttrPage(Map<String, Object> params, Long categoryId, String type);
 
     /**
      * 规格参数 修改时回显信息，
