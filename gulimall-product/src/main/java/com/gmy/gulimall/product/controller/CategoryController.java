@@ -1,14 +1,11 @@
 package com.gmy.gulimall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.gmy.gulimall.product.entity.CategoryEntity;
 import com.gmy.gulimall.product.service.CategoryService;
@@ -31,14 +28,14 @@ public class CategoryController {
     private CategoryService categoryService;
 
     /**
-     * 列表
+     * 查询出所有的商品分类，并且封装成树形结构
      */
-    @RequestMapping("/list")
+    @RequestMapping("/getAllCategory")
     // @RequiresPermissions("product:category:list")
-    public R list(@RequestParam Map<String, Object> params){
-        PageUtils page = categoryService.queryPage(params);
+    public R getAllCategoryList( ){
+        List<CategoryEntity> categoryList = categoryService.getAllCategoryWithTree();
 
-        return R.ok().put("page", page);
+        return R.ok().put("allCategory", categoryList);
     }
 
 
@@ -71,17 +68,23 @@ public class CategoryController {
     // @RequiresPermissions("product:category:update")
     public R update(@RequestBody CategoryEntity category){
 		categoryService.updateById(category);
+        // 级联更新
+        categoryService.updateCascade(category);
 
         return R.ok();
     }
 
     /**
      * 删除
+     * @RequestBody 获取请求体：只能使用 POST 请求。
+     * 将 springMVC 自动将 请求体的数据：json 转换为 对应的对象。
      */
     @RequestMapping("/delete")
     // @RequiresPermissions("product:category:delete")
     public R delete(@RequestBody Long[] catIds){
-		categoryService.removeByIds(Arrays.asList(catIds));
+        // 1、菜单是否被使用
+        categoryService.removeMenuByIds(Arrays.asList(catIds));
+		// categoryService.removeByIds(Arrays.asList(catIds));
 
         return R.ok();
     }

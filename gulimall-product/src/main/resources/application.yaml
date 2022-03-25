@@ -2,12 +2,31 @@ server:
   port: 10001
 
 spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: root
     url: jdbc:mysql://192.168.154.128:3306/gulimall_pms
+  cloud:
+    # 配置nacos 的地址
+    nacos:
+      discovery:
+        server-addr: 192.168.154.128:8848
+    # OSS云存储对象配置
+    alicloud:
+      access-key: LTAI5tLqPcndgvCmQ6hnqch9
+      secret-key: s1K8xXFvcZnAbd37RGlRBRHHSP0ztE
+      oss:
+        endpoint: oss-cn-beijing.aliyuncs.com
+  application:
+    name: gulimall-product
 
+logging:
+  level:
+    com.gmy.gulimall: debug
 
 # mybatis-plus
 mybatis-plus:
@@ -15,3 +34,6 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
+      logic-delete-field: flag # 全局逻辑删除的实体字段名(since 3.3.0,配置后可以忽略不配置步骤2)
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)

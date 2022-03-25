@@ -43,6 +43,14 @@ spring:
     # 解决高版本 spring boot 整合swagger 的报错
     pathmatch:
       matching-strategy: ant_path_matcher
+#  注册中心的名字
+  application:
+    name: renren-fast
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.154.128:8848
+        file-extension: yaml
 #  resources:
 #    add-mappings: false
 
