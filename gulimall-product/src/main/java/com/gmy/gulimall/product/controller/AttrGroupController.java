@@ -9,6 +9,7 @@ import com.gmy.gulimall.product.service.AttrAttrgroupRelationService;
 import com.gmy.gulimall.product.service.AttrService;
 import com.gmy.gulimall.product.service.CategoryService;
 import com.gmy.gulimall.product.vo.AttrGroupRelationVo;
+import com.gmy.gulimall.product.vo.AttrGroupWithAttrsVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,6 +45,18 @@ public class AttrGroupController {
 
     @Autowired
     private AttrAttrgroupRelationService relationService;
+
+
+     /* 获取分类下所分组和属性 */
+    @RequestMapping("/{catelogId}/withattr")
+    // @RequiresPermissions("product:attrgroup:list")
+    public R getAttrGroupWithAttrs(@PathVariable("catelogId") Long catelogId){
+
+        List<AttrGroupWithAttrsVo> res = attrGroupService.getAttrGroupWithAttrsByCatelogId(catelogId);
+        return R.ok().put("data", res);
+    }
+
+
 
     // 查询分组关联属性
     @RequestMapping("/{attrgroupId}/attr/relation")
