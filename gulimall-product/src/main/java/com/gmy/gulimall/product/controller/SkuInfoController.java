@@ -3,6 +3,7 @@ package com.gmy.gulimall.product.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.gmy.gulimall.product.vo.SpuSaveVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,8 +59,8 @@ public class SkuInfoController {
      */
     @RequestMapping("/save")
     // @RequiresPermissions("product:skuinfo:save")
-    public R save(@RequestBody SkuInfoEntity skuInfo){
-		skuInfoService.save(skuInfo);
+    public R save(@RequestBody SpuSaveVo skuInfoVo){
+		skuInfoService.saveSpuInfo(skuInfoVo);
 
         return R.ok();
     }
