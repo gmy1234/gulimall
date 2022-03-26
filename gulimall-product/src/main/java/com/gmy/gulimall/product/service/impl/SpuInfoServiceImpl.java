@@ -6,13 +6,13 @@ import com.gmy.common.utils.R;
 import com.gmy.gulimall.product.dao.SpuInfoDescDao;
 import com.gmy.gulimall.product.entity.*;
 import com.gmy.gulimall.product.service.*;
-import com.gmy.gulimall.product.vo.BaseAttrs;
-import com.gmy.gulimall.product.vo.SpuSaveVo;
+import com.gmy.gulimall.product.vo.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +42,15 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
     @Autowired
     ProductAttrValueService attrValueService;
+
+    @Autowired
+    SkuInfoService skuInfoService;
+
+    @Autowired
+    SkuImagesService skuImagesService;
+
+    @Autowired
+    SkuSaleAttrValueService skuSaleAttrValueService;
 
 
     @Override
@@ -103,15 +112,60 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
         // 4.5 保存 spu 的积分信息 sms_spu_bounds
 
-        // 5.保存 当前spu 对应的所有 sku 信息
-        // 5.1 sku 的基本信息 pms_sku_info
-        // 5.2 sku 的 图片信息 pms_sku_images
-        // 5.3 保存sku 的销售属性 信息 pms_sku_sale_attr_value
+        // 5.保存 当前 spu 对应的所有 sku 信息
+        final List<Skus> skuInfos = skuInfoVo.getSkus();
+        if (CollectionUtils.isNotEmpty(skuInfos)) {
+            skuInfos.forEach(item -> {
+                String defaultImg = "";
+                for (Images image : item.getImages()) {
+                    if (image.getDefaultImg() == 1) {
+                        defaultImg = image.getImgUrl();
+                    }
+                }
+
+                // 5.1 sku 的基本信息 pms_sku_info
+                final SkuInfoEntity skuInfo = new SkuInfoEntity();
+//                skuInfos 里边有的
+//                skuName;   price;
+//                skuTitle;  skuSubtitle;
+                BeanUtils.copyProperties(item, skuInfo);
+                skuInfo.setBrandId(spuBasicInfo.getBrandId());
+                skuInfo.setCatalogId(spuBasicInfo.getCatalogId());
+                skuInfo.setSaleCount(0L);
+                skuInfo.setSpuId(spuBasicInfo.getId());
+                skuInfo.setSkuDefaultImg(defaultImg);
+                skuInfoService.save(skuInfo);
+                final Long skuId = skuInfo.getSkuId();
+
+                // 5.2 sku 的图片信息 pms_sku_images
+                final List<SkuImagesEntity> skuImages = item.getImages().stream()
+                        .map(img -> {
+                            final SkuImagesEntity skuImage = new SkuImagesEntity();
+                            skuImage.setSkuId(skuId);
+                            skuImage.setImgUrl(img.getImgUrl());
+                            skuImage.setDefaultImg(img.getDefaultImg());
+                            return skuImage;
+                        }).collect(Collectors.toList());
+                skuImagesService.saveBatch(skuImages);
+
+                // 5.3 保存sku 的销售属性 信息 pms_sku_sale_attr_value
+                final List<Attr> attr = item.getAttr();
+                final List<SkuSaleAttrValueEntity> saleAttrValue = attr.stream().map(a -> {
+                    final SkuSaleAttrValueEntity skuSaleAttrValue = new SkuSaleAttrValueEntity();
+                    BeanUtils.copyProperties(a, skuSaleAttrValue);
+                    skuSaleAttrValue.setSkuId(skuId);
+                    return skuSaleAttrValue;
+                }).collect(Collectors.toList());
+                skuSaleAttrValueService.saveBatch(saleAttrValue);
+            });
+
+        }
+
         // 5.4 sku 的优惠信息，满减信息，gulimall_sms ——>数据库的表
         // 5.5
 
-
     }
+
 
     @Override
     public void saveBasicInfo(SpuInfoEntity spuBasicInfo) {
