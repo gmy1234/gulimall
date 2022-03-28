@@ -3,6 +3,7 @@
  */
 package com.gmy.gulimall.product.vo;
 
+import com.gmy.common.to.MemberPrice;
 import lombok.Data;
 
 import java.math.BigDecimal;

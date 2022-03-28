@@ -1,8 +1,10 @@
-package com.gmy.gulimall.product.vo;
+package com.gmy.common.to;
 
 import lombok.Data;
 
 import java.math.BigDecimal;
+
+
 
 /**
  * @version 1.0
