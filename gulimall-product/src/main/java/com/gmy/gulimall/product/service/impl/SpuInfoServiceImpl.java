@@ -2,6 +2,7 @@ package com.gmy.gulimall.product.service.impl;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.alibaba.nacos.common.utils.StringUtils;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.gmy.common.ProductConstant;
 import com.gmy.common.to.SkuReductionTo;
 import com.gmy.common.to.SpuBoundTo;
@@ -124,7 +125,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         BeanUtils.copyProperties(bounds, spuBoundTo);
         spuBoundTo.setSpuId(spuBasicInfo.getId());
         final R r = couponFeignService.saveSpuBounds(spuBoundTo);
-        if (r.getCode() != 0){
+        if (r.getCode() != 0) {
             log.error("远程保存积分信息失败");
         }
 
@@ -191,6 +192,43 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     @Override
     public void saveBasicInfo(SpuInfoEntity spuBasicInfo) {
         this.baseMapper.insert(spuBasicInfo);
+    }
+
+    @Override
+    public PageUtils queryPageMyCondition(Map<String, Object> params) {
+        final LambdaQueryWrapper<SpuInfoEntity> wrapper = new LambdaQueryWrapper<>();
+
+        /**
+         * status:
+         * key:
+         * brandId: 0
+         * catelogId: 0
+         */
+        final String key = (String) params.get("key");
+        if (StringUtils.isNotBlank(key)) {
+            wrapper.and(w -> {
+                w.eq(SpuInfoEntity::getId, key).or().like(SpuInfoEntity::getSpuName, key);
+            });
+        }
+        final String status = (String) params.get("status");
+        if (StringUtils.isNotBlank(status)) {
+            wrapper.eq(SpuInfoEntity::getPublishStatus, status);
+        }
+        final String brandId = (String) params.get("brandId");
+        if (StringUtils.isNotBlank(brandId) && !"0".equals(brandId)) {
+            wrapper.eq(SpuInfoEntity::getBrandId, brandId);
+        }
+        final String catelogId = (String) params.get("catelogId");
+        if (StringUtils.isNotBlank(catelogId) && ! "0".equals(brandId) ) {
+            wrapper.eq(SpuInfoEntity::getCatalogId, catelogId);
+        }
+
+        IPage<SpuInfoEntity> page = this.page(
+                new Query<SpuInfoEntity>().getPage(params),
+                wrapper
+        );
+
+        return new PageUtils(page);
     }
 
 
