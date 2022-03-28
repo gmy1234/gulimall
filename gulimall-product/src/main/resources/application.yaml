@@ -26,6 +26,7 @@ spring:
         endpoint: oss-cn-beijing.aliyuncs.com
   application:
     name: gulimall-product
+#   时间格式
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
 
