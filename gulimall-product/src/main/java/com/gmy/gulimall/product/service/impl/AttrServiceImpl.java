@@ -2,7 +2,7 @@ package com.gmy.gulimall.product.service.impl;
 
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.gmy.common.ProductConstant;
+import com.gmy.common.constant.ProductConstant;
 import com.gmy.gulimall.product.dao.AttrAttrgroupRelationDao;
 import com.gmy.gulimall.product.dao.AttrGroupDao;
 import com.gmy.gulimall.product.dao.CategoryDao;
