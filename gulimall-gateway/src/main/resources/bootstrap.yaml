@@ -4,7 +4,7 @@ spring:
   cloud:
     nacos:
       config:
-        server-addr: 192.168.154.128:8848
+        server-addr: localhost:8848
         file-extension: yaml
         # 模块下的命名空间  必须是 ID
         namespace: 129bf123-eea5-45b0-a8e4-12d18cf1270b

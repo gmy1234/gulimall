@@ -4,7 +4,7 @@ spring:
   cloud:
     nacos:
       config:
-        server-addr: 192.168.154.128:8848
+        server-addr: localhost:8848
         file-extension: yaml
         # coupon  模块下的命名空间，必须是 ID
         namespace: be92f135-2890-47d8-8f80-d9491c2d2253
