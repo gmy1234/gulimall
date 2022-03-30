@@ -7,6 +7,12 @@ spring:
     username: root
     password: root
     url: jdbc:mysql://192.168.154.128:3306/gulimall_wms
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.154.128:8848
+  application:
+    name: gulimall-ware
 
 
 # mybatis-plus
@@ -15,3 +21,8 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
+
+
+logging:
+  level:
+    com.gmy: debug

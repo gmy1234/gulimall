@@ -5,11 +5,14 @@ import com.gmy.gulimall.product.dao.BrandDao;
 import com.gmy.gulimall.product.dao.CategoryDao;
 import com.gmy.gulimall.product.entity.BrandEntity;
 import com.gmy.gulimall.product.entity.CategoryEntity;
+import com.gmy.gulimall.product.service.BrandService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -30,6 +33,12 @@ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandR
 
     @Autowired
     CategoryDao categoryDao;
+
+    @Autowired
+    CategoryBrandRelationDao relationDao;
+
+    @Autowired
+    BrandService brandService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -85,6 +94,23 @@ public class CategoryBrandRelationServiceImpl extends ServiceImpl<CategoryBrandR
     @Override
     public void updateCategory(Long catId, String name) {
         this.baseMapper.updateCategory(catId, name);
+    }
+
+    /**
+     * 根据 分类 ID 查询 指定的品牌信息
+     * @param catId 分类Id
+     * @return 品牌信息
+     */
+    @Override
+    public List<BrandEntity> getBrandsByCatId(Long catId) {
+        final LambdaQueryWrapper<CategoryBrandRelationEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CategoryBrandRelationEntity::getCatelogId, catId);
+        final List<CategoryBrandRelationEntity>  cateBrandRelation = relationDao.selectList(wrapper);
+
+        // 这里只获取了 分类和品牌关系表的关系数据，我们要返回 品牌整个数据，所以用 流 映射了一下
+        return cateBrandRelation.stream()
+                .map(item -> brandService.getById(item.getBrandId()))
+                .collect(Collectors.toList());
     }
 
 }

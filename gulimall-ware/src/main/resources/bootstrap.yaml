@@ -1,13 +1,13 @@
 spring:
   application:
-    name: gulimall-coupon
+    name: gulimall-ware
   cloud:
     nacos:
       config:
         server-addr: 192.168.154.128:8848
         file-extension: yaml
         # coupon  模块下的命名空间，必须是 ID
-        namespace: be92f135-2890-47d8-8f80-d9491c2d2253
+        namespace: d357d0b1-095b-4ae5-83ec-d6b2dbf948f4
         group: DEFAULT_GROUP
         extension-configs[0]:
           data-id: datasource.yaml

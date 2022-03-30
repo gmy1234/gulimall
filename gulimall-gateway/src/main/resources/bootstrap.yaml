@@ -7,4 +7,4 @@ spring:
         server-addr: 192.168.154.128:8848
         file-extension: yaml
         # 模块下的命名空间  必须是 ID
-        namespace: 592c7496-fec1-4cc2-8376-e87b2da4bdba
+        namespace: 129bf123-eea5-45b0-a8e4-12d18cf1270b

@@ -1,4 +1,4 @@
-package com.gmy.common;
+package com.gmy.common.constant;
 
 /**
  * @version 1.0

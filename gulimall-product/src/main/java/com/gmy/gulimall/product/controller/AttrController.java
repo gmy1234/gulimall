@@ -1,8 +1,11 @@
 package com.gmy.gulimall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import com.gmy.gulimall.product.entity.ProductAttrValueEntity;
+import com.gmy.gulimall.product.service.ProductAttrValueService;
 import com.gmy.gulimall.product.vo.AttrRespVo;
 import com.gmy.gulimall.product.vo.AttrVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +30,18 @@ import com.gmy.common.utils.R;
 public class AttrController {
     @Autowired
     private AttrService attrService;
+
+    @Autowired
+    private ProductAttrValueService attrValueService;
+
+    @GetMapping("/base/listforspu/{spuId}")
+    // @RequiresPermissions("product:attr:list")
+    public R baseAttrListForSpu(@PathVariable("spuId") Long spuId) {
+
+        List<ProductAttrValueEntity> res = attrValueService.baseAttrListForSpu(spuId);
+        return R.ok().put("data", res);
+    }
+
 
     /**
      * 获取基本属性属性
@@ -78,6 +93,18 @@ public class AttrController {
         return R.ok();
     }
 
+
+    /**
+     * 修改
+     */
+    @RequestMapping("/update/{spuId}")
+    // @RequiresPermissions("product:attr:update")
+    public R updateSpuAttr(@PathVariable Long spuId,
+                           @RequestBody List<ProductAttrValueEntity> entities){
+        attrValueService.updateSpuAttr(spuId, entities);
+
+        return R.ok();
+    }
     /**
      * 修改
      */
