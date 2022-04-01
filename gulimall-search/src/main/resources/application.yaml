@@ -1,3 +1,6 @@
+server:
+  port: 6000
+
 spring:
   profiles:
     include: environment
