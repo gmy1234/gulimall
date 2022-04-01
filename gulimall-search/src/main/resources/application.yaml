@@ -1,0 +1,6 @@
+spring:
+  profiles:
+    include: environment
+  application:
+    name: gulimall-search
+
