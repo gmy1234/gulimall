@@ -16,10 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -240,6 +237,27 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     public void up(Long spuId) {
         // 通过 spuID 查询出 所有的SKU信息
         List<SkuInfoEntity> skus = skuInfoService.getSkusBySpuId(spuId);
+
+        // TODO: 4、查询sku的规格和属性的信息
+        List<ProductAttrValueEntity> baseAttr = attrValueService.baseAttrListForSpu(spuId);
+        List<Long> attrIds = baseAttr.stream().map(ProductAttrValueEntity::getAttrId)
+                .collect(Collectors.toList());
+
+       List<Long> searchAttrIds =  attrService.searchAttrs(attrIds);
+
+       // sku 中 包含 匹配的
+        HashSet<Long> zj = new HashSet<>(searchAttrIds);
+        List<SkuESModule.Attrs> attrsList = baseAttr.stream()
+                .filter(item -> zj.contains(item.getAttrId()))
+                .map(item -> {
+                    SkuESModule.Attrs attrs = new SkuESModule.Attrs();
+                    BeanUtils.copyProperties(item, attrs);
+                    return attrs;
+                })
+                .collect(Collectors.toList());
+
+
+
         // 封装每个SKU信息
         List<SkuESModule> upProduct = skus.stream().map(sku -> {
 
@@ -259,7 +277,8 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
             CategoryEntity cate = categoryService.getById(skuESModule.getCatalogId());
             skuESModule.setCatalogName(cate.getName());
 
-            // TODO: 4、查询sku的规格和属性的信息
+            // 设置检索属性
+            skuESModule.setAttrs(attrsList);
 
 
             return skuESModule;

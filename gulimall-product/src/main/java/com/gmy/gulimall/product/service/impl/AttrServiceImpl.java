@@ -3,6 +3,7 @@ package com.gmy.gulimall.product.service.impl;
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.gmy.common.constant.ProductConstant;
+import com.gmy.common.exception.RRException;
 import com.gmy.gulimall.product.dao.AttrAttrgroupRelationDao;
 import com.gmy.gulimall.product.dao.AttrGroupDao;
 import com.gmy.gulimall.product.dao.CategoryDao;
@@ -274,6 +275,23 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
         final IPage<AttrEntity> page = this.page(new Query<AttrEntity>().getPage(params), queryWrapper);
         return new PageUtils(page);
+    }
+
+    @Override
+    public List<Long> searchAttrs(List<Long> attrIds) {
+
+        LambdaQueryWrapper<AttrEntity> wrapper = new LambdaQueryWrapper<>();
+
+        if (CollectionUtils.isNotEmpty(attrIds)){
+            wrapper.in(AttrEntity::getAttrId, attrIds)
+                    .and( r -> r.eq(AttrEntity::getSearchType,1));
+
+            List<AttrEntity> attrEntities = this.baseMapper.selectList(wrapper);
+
+            return  attrEntities.stream().map(AttrEntity::getAttrId
+            ).collect(Collectors.toList());
+        }
+        throw new RRException("属性为空");
     }
 
 
