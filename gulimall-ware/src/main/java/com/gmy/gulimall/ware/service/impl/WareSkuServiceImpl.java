@@ -2,8 +2,13 @@ package com.gmy.gulimall.ware.service.impl;
 
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.gmy.common.to.SkuHasStockVo;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -38,6 +43,23 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public List<SkuHasStockVo> getSkuHasStock(List<Long> skuIds) {
+
+        List<SkuHasStockVo> data = skuIds.stream()
+                .map(skuId -> {
+                    SkuHasStockVo vo = new SkuHasStockVo();
+
+                    // 查询当前 sku 库存的总量
+                    long count = this.baseMapper.getSkuStock(skuId);
+                    vo.setSkuId(skuId);
+                    vo.setStock( count > 0);
+                    return vo;
+                })
+                .collect(Collectors.toList());
+        return data;
     }
 
 }

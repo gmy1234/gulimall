@@ -3,12 +3,14 @@ package com.gmy.gulimall.product.service.impl;
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.gmy.common.to.SkuHasStockVo;
 import com.gmy.common.to.SkuReductionTo;
 import com.gmy.common.to.SpuBoundTo;
 import com.gmy.common.to.es.SkuESModule;
 import com.gmy.common.utils.R;
 import com.gmy.gulimall.product.entity.*;
 import com.gmy.gulimall.product.feign.CouponFeignService;
+import com.gmy.gulimall.product.feign.WareFeignService;
 import com.gmy.gulimall.product.service.*;
 import com.gmy.gulimall.product.vo.*;
 import org.checkerframework.checker.units.qual.A;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -61,6 +64,9 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
     @Autowired
     CategoryService categoryService;
+
+    @Autowired
+    WareFeignService wareFeignService;
 
 
     @Override
@@ -237,6 +243,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     public void up(Long spuId) {
         // 通过 spuID 查询出 所有的SKU信息
         List<SkuInfoEntity> skus = skuInfoService.getSkusBySpuId(spuId);
+        List<Long> spuIds = skus.stream().map(SkuInfoEntity::getSpuId).collect(Collectors.toList());
 
         // TODO: 4、查询sku的规格和属性的信息
         List<ProductAttrValueEntity> baseAttr = attrValueService.baseAttrListForSpu(spuId);
@@ -256,9 +263,21 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                 })
                 .collect(Collectors.toList());
 
+        // TODO: 1、远程调用，库存系统查询是否有库存
+        Map<Long, Boolean> hasStock = null;
+        try {
+            R<List<SkuHasStockVo>> skuHasStock = wareFeignService.getSkuHasStock(spuIds);
+            List<SkuHasStockVo> data = skuHasStock.getData();
+            hasStock = data.stream()
+                    .collect(Collectors.toMap(SkuHasStockVo::getSkuId, SkuHasStockVo::getStock));
+
+        }catch (Exception e){
+            log.error("远程查询库存状态异常：原因「」：", e);
+        }
 
 
         // 封装每个SKU信息
+        Map<Long, Boolean> finalHasStock = hasStock;
         List<SkuESModule> upProduct = skus.stream().map(sku -> {
 
             SkuESModule skuESModule = new SkuESModule();
@@ -267,8 +286,15 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
             skuESModule.setSkuPrice(sku.getPrice());
             skuESModule.setSkuImg(sku.getSkuDefaultImg());
 
-            // TODO: 1、远程调用，库存系统查询是否有库存
             // TODO: 2、热度评分：hotScore 默认0
+            // 库存：hasStock
+            if (finalHasStock == null) {
+                skuESModule.setHasStock(true);
+            }else {
+                skuESModule.setHasStock(finalHasStock.get(sku.getSkuId()));
+
+            }
+            skuESModule.setHotScore(0L);
             // TODO: 3、查询品牌和分类的信息
             BrandEntity brand = brandService.getById(skuESModule.getBrandId());
             skuESModule.setBrandName(brand.getName());
