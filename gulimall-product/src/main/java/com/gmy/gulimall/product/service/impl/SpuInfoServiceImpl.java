@@ -5,15 +5,18 @@ import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.gmy.common.to.SkuReductionTo;
 import com.gmy.common.to.SpuBoundTo;
+import com.gmy.common.to.es.SkuESModule;
 import com.gmy.common.utils.R;
 import com.gmy.gulimall.product.entity.*;
 import com.gmy.gulimall.product.feign.CouponFeignService;
 import com.gmy.gulimall.product.service.*;
 import com.gmy.gulimall.product.vo.*;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +58,12 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
     @Autowired
     CouponFeignService couponFeignService;
+
+    @Autowired
+    BrandService brandService;
+
+    @Autowired
+    CategoryService categoryService;
 
 
     @Override
@@ -225,6 +234,39 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public void up(Long spuId) {
+        // 通过 spuID 查询出 所有的SKU信息
+        List<SkuInfoEntity> skus = skuInfoService.getSkusBySpuId(spuId);
+        // 封装每个SKU信息
+        List<SkuESModule> upProduct = skus.stream().map(sku -> {
+
+            SkuESModule skuESModule = new SkuESModule();
+            BeanUtils.copyProperties(sku, skuESModule);
+            // img , price
+            skuESModule.setSkuPrice(sku.getPrice());
+            skuESModule.setSkuImg(sku.getSkuDefaultImg());
+
+            // TODO: 1、远程调用，库存系统查询是否有库存
+            // TODO: 2、热度评分：hotScore 默认0
+            // TODO: 3、查询品牌和分类的信息
+            BrandEntity brand = brandService.getById(skuESModule.getBrandId());
+            skuESModule.setBrandName(brand.getName());
+            skuESModule.setBrandImg(brand.getLogo());
+            // 设置分类信息
+            CategoryEntity cate = categoryService.getById(skuESModule.getCatalogId());
+            skuESModule.setCatalogName(cate.getName());
+
+            // TODO: 4、查询sku的规格和属性的信息
+
+
+            return skuESModule;
+        }).collect(Collectors.toList());
+
+        // TODO: 5、数据发给es 进行保存：gulimall-search
+
     }
 
 

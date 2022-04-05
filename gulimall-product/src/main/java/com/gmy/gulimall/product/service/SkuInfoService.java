@@ -3,9 +3,8 @@ package com.gmy.gulimall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.gmy.common.utils.PageUtils;
 import com.gmy.gulimall.product.entity.SkuInfoEntity;
-import com.gmy.gulimall.product.entity.SpuInfoEntity;
-import com.gmy.gulimall.product.vo.SpuSaveVo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,5 +19,13 @@ public interface SkuInfoService extends IService<SkuInfoEntity> {
     PageUtils queryPage(Map<String, Object> params);
 
     PageUtils queryPageMyCondition(Map<String, Object> params);
+
+    /**
+     *  通过spuID 查询 SKU的信息
+     *
+     * @param spuId spuID
+     * @return 返回的集合
+     */
+    List<SkuInfoEntity> getSkusBySpuId(Long spuId);
 }
 

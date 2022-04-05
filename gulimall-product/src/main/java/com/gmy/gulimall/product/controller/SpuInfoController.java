@@ -34,6 +34,18 @@ public class SpuInfoController {
     /**
      * 列表
      */
+    @RequestMapping("/{spuId}/up")
+    // @RequiresPermissions("product:spuinfo:list")
+    public R spuUP(@PathVariable("spuId") Long spuId){
+         spuInfoService.up(spuId);
+
+        return R.ok();
+    }
+
+
+    /**
+     * 列表
+     */
     @RequestMapping("/list")
     // @RequiresPermissions("product:spuinfo:list")
     public R list(@RequestParam Map<String, Object> params){

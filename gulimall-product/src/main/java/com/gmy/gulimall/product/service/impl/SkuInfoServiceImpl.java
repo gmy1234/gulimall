@@ -6,6 +6,7 @@ import com.gmy.gulimall.product.entity.SpuInfoEntity;
 import com.gmy.gulimall.product.vo.SpuSaveVo;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -72,6 +73,15 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public List<SkuInfoEntity> getSkusBySpuId(Long spuId) {
+
+        LambdaQueryWrapper<SkuInfoEntity> wrapper = new LambdaQueryWrapper<>();
+
+        wrapper.eq(SkuInfoEntity::getSpuId, spuId);
+        return this.list(wrapper);
     }
 
 
