@@ -3,6 +3,7 @@ package com.gmy.gulimall.product.service.impl;
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.gmy.common.constant.ProductConstant;
 import com.gmy.common.to.SkuHasStockVo;
 import com.gmy.common.to.SkuReductionTo;
 import com.gmy.common.to.SpuBoundTo;
@@ -10,6 +11,7 @@ import com.gmy.common.to.es.SkuESModule;
 import com.gmy.common.utils.R;
 import com.gmy.gulimall.product.entity.*;
 import com.gmy.gulimall.product.feign.CouponFeignService;
+import com.gmy.gulimall.product.feign.SearchFeignService;
 import com.gmy.gulimall.product.feign.WareFeignService;
 import com.gmy.gulimall.product.service.*;
 import com.gmy.gulimall.product.vo.*;
@@ -67,6 +69,9 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
     @Autowired
     WareFeignService wareFeignService;
+
+    @Autowired
+    SearchFeignService searchFeignService;
 
 
     @Override
@@ -311,6 +316,18 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         }).collect(Collectors.toList());
 
         // TODO: 5、数据发给es 进行保存：gulimall-search
+        R r = searchFeignService.productStatusUp(upProduct);
+        if (r.getCode() == 0) {
+            // 成功
+            // todo 6: 修改 spu 的上架状态
+            SpuInfoEntity spuInfoEntity = new SpuInfoEntity();
+            spuInfoEntity.setId(spuId);
+            spuInfoEntity.setPublishStatus(ProductConstant.StatusEnum.UP_SPU.getCode());
+            this.baseMapper.updateById(spuInfoEntity);
+        }else {
+            // 失败
+            // TODO: 重复调用？接口幂等性； 重拾机制
+        }
 
     }
 

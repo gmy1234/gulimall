@@ -13,5 +13,5 @@ public interface ProductSaveService {
      *
      * @param skuESModuleList 上架商品的信息
      */
-    void up(List<SkuESModule> skuESModuleList) throws IOException;
+    Boolean up(List<SkuESModule> skuESModuleList) throws IOException;
 }
