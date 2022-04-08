@@ -1,5 +1,6 @@
 package com.gmy.gulimall.product.service.impl;
 
+import com.alibaba.fastjson.TypeReference;
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -20,6 +21,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -271,8 +273,10 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         // TODO: 1、远程调用，库存系统查询是否有库存
         Map<Long, Boolean> hasStock = null;
         try {
-            R<List<SkuHasStockVo>> skuHasStock = wareFeignService.getSkuHasStock(spuIds);
-            List<SkuHasStockVo> data = skuHasStock.getData();
+            R r = wareFeignService.getSkuHasStock(spuIds);
+            TypeReference<List<SkuHasStockVo>> typeReference = new TypeReference<List<SkuHasStockVo>>() {};
+            List<SkuHasStockVo> data =  r.getData(typeReference);
+
             hasStock = data.stream()
                     .collect(Collectors.toMap(SkuHasStockVo::getSkuId, SkuHasStockVo::getStock));
 
@@ -281,7 +285,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         }
 
 
-        // 封装每个SKU信息
+        // 2、封装每个SKU信息
         Map<Long, Boolean> finalHasStock = hasStock;
         List<SkuESModule> upProduct = skus.stream().map(sku -> {
 
@@ -327,6 +331,16 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         }else {
             // 失败
             // TODO: 重复调用？接口幂等性； 重拾机制
+            // feign 调用流程
+            /**
+             *  构造请求数据，将对象转换为 json
+             *  发送请求进行执行（转型成功会解码并相应数据）
+             *  3。执行请求，会有重试机制，默认关闭
+             *      while（true）「
+             *      try{
+             *
+             *      }
+             */
         }
 
     }

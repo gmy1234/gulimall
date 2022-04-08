@@ -6,8 +6,7 @@ import com.gmy.common.utils.R;
 import com.gmy.gulimall.search.service.ProductSaveService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,8 +19,8 @@ public class ElasticSaveController {
     @Autowired
     ProductSaveService productSaveService;
 
-    @RequestMapping("/product")
-    public R productStatusUp(List<SkuESModule> skuESModuleList) {
+    @PostMapping("/product")
+    public R productStatusUp( @RequestBody List<SkuESModule> skuESModuleList) {
 
         Boolean up;
         try {

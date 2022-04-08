@@ -5,6 +5,7 @@ import com.gmy.common.to.es.SkuESModule;
 import com.gmy.common.utils.R;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 public interface SearchFeignService {
 
     @PostMapping("/search/save/product")
-    public R productStatusUp(List<SkuESModule> skuESModuleList);
+    public R productStatusUp(@RequestBody List<SkuESModule> skuESModuleList);
 
 
 }

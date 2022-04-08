@@ -8,26 +8,31 @@
 
 package com.gmy.common.utils;
 
+import com.alibaba.fastjson.JSON;
+
+import com.alibaba.fastjson.TypeReference;
 import org.apache.http.HttpStatus;
+
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+
 
 /**
  * 返回数据
  *
  * @author Mark sunlightcs@gmail.com
  */
-public class R<T> extends HashMap<String, Object> {
+public class R extends HashMap<String, Object> {
 	private static final long serialVersionUID = 1L;
 
-	private T data;
 
-	public T getData() {
-		return data;
-	}
-
-	public void setData(T data) {
-		this.data = data;
+	// 利用fastjson 逆转
+	public <T> T getData(TypeReference<T> typeReference){
+		// 默认是map
+		Object data = get("data");
+		String jsonString = JSON.toJSONString(data);
+		return JSON.parseObject(jsonString, typeReference);
 	}
 
 	public R() {

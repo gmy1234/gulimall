@@ -1,6 +1,7 @@
 package com.gmy.gulimall.search.service.impl;
 
 import com.alibaba.druid.support.json.JSONUtils;
+import com.alibaba.fastjson.JSON;
 import com.gmy.common.constant.EsConstant;
 import com.gmy.common.to.es.SkuESModule;
 import com.gmy.gulimall.search.config.GulimallElasticsearchConfig;
@@ -39,7 +40,8 @@ public class ProductSaveServiceImpl implements ProductSaveService {
         for (SkuESModule skuESModule : skuESModuleList) {
             IndexRequest indexRequest = new IndexRequest(EsConstant.PRODUCT_INDEX);
             indexRequest.id(skuESModule.getSkuId().toString());
-            String s = JSONUtils.toJSONString(skuESModule);
+            String s = JSON.toJSONString(skuESModule);
+
             indexRequest.source(s, XContentType.JSON);
 
             bulkRequest.add(indexRequest);
