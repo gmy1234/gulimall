@@ -8,6 +8,7 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
@@ -26,6 +27,15 @@ spring:
         endpoint: oss-cn-beijing.aliyuncs.com
   application:
     name: gulimall-product
+
+  thymeleaf:
+    cache: false
+
+  # 静态资源设置位置
+
+  resources:
+    static-locations: classpath:templates/,classpath:static/
+
 #   时间格式
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
