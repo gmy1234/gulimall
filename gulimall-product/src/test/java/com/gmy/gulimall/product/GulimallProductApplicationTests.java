@@ -1,6 +1,7 @@
 package com.gmy.gulimall.product;
 
 import org.junit.jupiter.api.Test;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -15,6 +16,9 @@ class GulimallProductApplicationTests {
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
+    @Autowired
+    RedissonClient redissonClient;
+
     @Test
     void stringRedisTest(){
         ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
@@ -27,6 +31,11 @@ class GulimallProductApplicationTests {
     @Test
     void contextLoads() {
 
+    }
+
+    @Test
+    void redisson(){
+        System.out.println(redissonClient);
     }
 
 }
