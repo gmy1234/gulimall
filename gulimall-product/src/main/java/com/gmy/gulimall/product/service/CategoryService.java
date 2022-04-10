@@ -51,9 +51,23 @@ public interface CategoryService extends IService<CategoryEntity> {
 
     /**
      *二级、三级分类数据
-     *
+     * 本地锁
      * @return 分类的数据
      */
-    Map<String, List<Catalogs2Vo>> getCatalogJsonFromDB();
+    Map<String, List<Catalogs2Vo>> getCatalogJsonFromDBWithLocalLock();
+
+    /**
+     * 使用redis 缓存来封装分类
+     * @return 分类
+     */
+    Map<String, List<Catalogs2Vo>> getCatalogJsonFromRedis();
+
+
+    /**
+     * Redis锁
+     * @return 分类结果
+     */
+    Map<String, List<Catalogs2Vo>> getCatalogJsonFromDBWithRedisLock();
+
 }
 
