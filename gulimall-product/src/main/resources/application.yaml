@@ -32,13 +32,17 @@ spring:
     cache: false
 
   # 静态资源设置位置
-
   resources:
     static-locations: classpath:templates/,classpath:static/
 
 #   时间格式
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
+
+# redis
+  redis:
+    host: 127.0.0.1
+    port: 6379
 
 logging:
   level:
