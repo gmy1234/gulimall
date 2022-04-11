@@ -326,10 +326,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         } finally {
             lock.unlock();
         }
-
-
         return catalogDataFromDB;
-
     }
 
 
