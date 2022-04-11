@@ -69,5 +69,12 @@ public interface CategoryService extends IService<CategoryEntity> {
      */
     Map<String, List<Catalogs2Vo>> getCatalogJsonFromDBWithRedisLock();
 
+
+    /**
+     * 使用 Redisson
+     * @return 分类结果
+     */
+    Map<String, List<Catalogs2Vo>> getCatalogJsonFromDBWithRedissonLock();
+
 }
 

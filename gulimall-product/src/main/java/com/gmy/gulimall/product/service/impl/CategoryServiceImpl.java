@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.gmy.gulimall.product.service.CategoryBrandRelationService;
 import com.gmy.gulimall.product.vo.Catalogs2Vo;
 import io.netty.util.internal.StringUtil;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -35,6 +37,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Autowired
     private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    RedissonClient redissonClient;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -147,7 +152,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
 
     /**
-     *  查询数据库中的分类
+     * 查询数据库中的分类
+     *
      * @return 分类集合
      */
     private Map<String, List<Catalogs2Vo>> getCatalogDataFromDB() {
@@ -264,15 +270,15 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         // 占分布式锁,redis 占坑,并且设置过期时间 原子操作
         String uuid = UUID.randomUUID().toString();
         Boolean lock = redisTemplate.opsForValue()
-                .setIfAbsent("lock", uuid,30,TimeUnit.SECONDS);
+                .setIfAbsent("lock", uuid, 30, TimeUnit.SECONDS);
 
         if (Boolean.TRUE.equals(lock)) {
             System.out.println("获取分布式锁成功...");
             // 加锁成功。。。执行业务
             Map<String, List<Catalogs2Vo>> catalogDataFromDB;
-            try{
+            try {
                 catalogDataFromDB = this.getCatalogDataFromDB();
-            }finally {
+            } finally {
                 // 获取值对比 + 对比成功删除=原子操作 使用 Lua 脚本
                 String script = "if redis.call('get',KEYS[1]) == ARGV[1] then return redis.call('get',KEYS[1]) else return 0 end";
                 Integer lock1 = redisTemplate.execute(new DefaultRedisScript<>(script, Integer.class),
@@ -280,15 +286,15 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             }
 
             // 删除锁
-                // 先去redis查询下保证当前的锁是自己的
-                // 获取值对比，对比成功删除=原子性 lua脚本解锁
-                // String lockValue = stringRedisTemplate.opsForValue().get("lock");
-                // if (uuid.equals(lockValue)) {
-                //     //删除我自己的锁
-                //     stringRedisTemplate.delete("lock");
+            // 先去redis查询下保证当前的锁是自己的
+            // 获取值对比，对比成功删除=原子性 lua脚本解锁
+            // String lockValue = stringRedisTemplate.opsForValue().get("lock");
+            // if (uuid.equals(lockValue)) {
+            //     //删除我自己的锁
+            //     stringRedisTemplate.delete("lock");
 
             return catalogDataFromDB;
-        }else {
+        } else {
             // 加锁失败...重新试一试
             try {
                 // 休眠 100ms
@@ -300,6 +306,31 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         }
     }
 
+    /**
+     * 缓存里边和数据库里边如何保持数据的一致性
+     * 1。双写模式
+     * 2。失效模式
+     * @return 分类
+     */
+    @Override
+    public Map<String, List<Catalogs2Vo>> getCatalogJsonFromDBWithRedissonLock() {
+
+        // 锁的名字，锁的粒度，越细越快
+        RLock lock = redissonClient.getLock("CatalogJson-lock");
+        lock.lock();
+
+        // 加锁成功。。。执行业务
+        Map<String, List<Catalogs2Vo>> catalogDataFromDB;
+        try {
+            catalogDataFromDB = this.getCatalogDataFromDB();
+        } finally {
+            lock.unlock();
+        }
+
+
+        return catalogDataFromDB;
+
+    }
 
 
 }

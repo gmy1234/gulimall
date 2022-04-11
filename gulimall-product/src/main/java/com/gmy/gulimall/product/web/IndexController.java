@@ -3,6 +3,10 @@ package com.gmy.gulimall.product.web;
 import com.gmy.gulimall.product.entity.CategoryEntity;
 import com.gmy.gulimall.product.service.CategoryService;
 import com.gmy.gulimall.product.vo.Catalogs2Vo;
+import org.redisson.api.RLock;
+import org.redisson.api.RSemaphore;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +20,9 @@ import java.util.Map;
 public class IndexController {
     @Resource
     private CategoryService categoryService;
+
+    @Autowired
+    RedissonClient redissonClient;
 
     /*
      @Autowired
@@ -43,6 +50,25 @@ public class IndexController {
     @ResponseBody
     public Map<String, List<Catalogs2Vo>> getCatalogJson() {
         return categoryService.getCatalogJsonFromRedis();
+    }
+
+
+    @ResponseBody
+    @GetMapping("/park")
+    public String hello(){
+
+        RSemaphore park = redissonClient.getSemaphore("park");
+
+        try {
+            park.acquire();// 获取一个信号量，一个值
+
+            park.release();// 释放一个信号量
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
+        return "ok";
     }
 
 
