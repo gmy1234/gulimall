@@ -55,24 +55,6 @@ public class IndexController {
     }
 
 
-    @ResponseBody
-    @GetMapping("/park")
-    public String hello(){
-
-        RSemaphore park = redissonClient.getSemaphore("park");
-
-        try {
-            park.acquire();// 获取一个信号量，一个值
-
-            park.release();// 释放一个信号量
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-
-        return "ok";
-    }
-
 
     /*@ResponseBody
     @GetMapping(value = "/hello")
