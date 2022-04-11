@@ -31,10 +31,10 @@ public interface CategoryService extends IService<CategoryEntity> {
     /**
      * 找到catelogId 的完整路径
      * 父/子/孙子
-     * @param catelogId 分类Id
+     * @param catalogId 分类Id
      * @return 路径
      */
-    Long[] findCatelogPath(Long catelogId);
+    Long[] findCatalogPath(Long catalogId);
 
     /**
      * 级联更新 分类名
@@ -48,6 +48,12 @@ public interface CategoryService extends IService<CategoryEntity> {
      * @return 一级分类的实体
      */
     List<CategoryEntity> getLevel1Categories();
+
+    /**
+     * 单纯的查数据库
+     * @return 分类结果
+     */
+    Map<String, List<Catalogs2Vo>> getCatalogDataFromDB();
 
     /**
      *二级、三级分类数据

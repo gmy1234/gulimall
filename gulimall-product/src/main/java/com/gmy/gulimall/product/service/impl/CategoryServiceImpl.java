@@ -9,7 +9,9 @@ import io.netty.util.internal.StringUtil;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -89,18 +91,18 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     }
 
     @Override
-    public Long[] findCatelogPath(Long catelogId) {
+    public Long[] findCatalogPath(Long catalogId) {
         ArrayList<Long> paths = new ArrayList<>();
-        List<Long> parentPath = findParentPath(catelogId, paths);
+        List<Long> parentPath = findParentPath(catalogId, paths);
         Collections.reverse(parentPath);
 
         return parentPath.toArray(new Long[0]);
     }
 
-    private List<Long> findParentPath(Long catelogId, List<Long> paths) {
+    private List<Long> findParentPath(Long catalogId, List<Long> paths) {
         // 收集当前节点Id
-        paths.add(catelogId);
-        CategoryEntity byId = this.getById(catelogId);
+        paths.add(catalogId);
+        CategoryEntity byId = this.getById(catalogId);
         if (byId.getParentCid() != 0) {
             findParentPath(byId.getParentCid(), paths);
         }
@@ -133,13 +135,18 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     /**
      * 级联更新 分类名
-     *
+     *  2、@Caching 注解 使用操作组合起来
      * @param category 分类的实体
      */
+    @Caching(evict = {
+            @CacheEvict(value = "Category", key = "'getLevel1Categories'"),
+            @CacheEvict(value = "Category", key = "'catalogJSON'")
+            }
+    )
+    // 或者使用这个  @CacheEvict(value = "Category", allEntries = true)
     @Override
     public void updateCascade(CategoryEntity category) {
         this.baseMapper.updateById(category);
-
         categoryBrandRelationService.updateCategory(category.getCatId(), category.getName());
     }
 
@@ -153,23 +160,13 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return this.baseMapper.selectList(wrapper);
     }
 
-
     /**
-     * 查询数据库中的分类
-     *
-     * @return 分类集合
+     * 单纯的查数据库
+     * @return 分类结果
      */
-    private Map<String, List<Catalogs2Vo>> getCatalogDataFromDB() {
-        // 查询数据库的时候，先查询缓存，缓存无数据再去查询
-        String catalogJSON = redisTemplate.opsForValue().get("catalogJSON");
-        // 缓存中有
-        if (!StringUtil.isNullOrEmpty(catalogJSON)) {
-            // 直接返回
-            return JSON.parseObject(catalogJSON,
-                    new TypeReference<Map<String, List<Catalogs2Vo>>>() {
-                    });
-        }
-
+    @Cacheable(value ="{Category}", key = "'categoryJSON'")
+    @Override
+    public Map<String, List<Catalogs2Vo>> getCatalogDataFromDB() {
         System.out.println("查询了数据库");
         // 性能优化：将数据库的多次查询变为一次
         List<CategoryEntity> selectList = this.baseMapper.selectList(null);
@@ -210,12 +207,33 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                     return catalogs2Vos;
                 }));
 
+        return parentCid;
+    }
+
+    /**
+     * 查询数据库中的分类,并且放入缓存中
+     *
+     * @return 分类集合
+     */
+    private Map<String, List<Catalogs2Vo>> getCatalogDataFromDBWithCache() {
+        // 查询数据库的时候，先查询缓存，缓存无数据再去查询
+        String catalogJSON = redisTemplate.opsForValue().get("catalogJSON");
+        // 缓存中有
+        if (!StringUtil.isNullOrEmpty(catalogJSON)) {
+            // 直接返回
+            return JSON.parseObject(catalogJSON,
+                    new TypeReference<Map<String, List<Catalogs2Vo>>>() {
+                    });
+        }
+        // 查数据库
+        Map<String, List<Catalogs2Vo>> catalogDataFromDB = this.getCatalogDataFromDB();
+
         // 2.数据放到缓存中存的数据都是 json 字符串
-        String catalogJson = JSON.toJSONString(parentCid);
+        String catalogJson = JSON.toJSONString(catalogDataFromDB);
         // 3.设置过期时间,防止缓存雪崩
         redisTemplate.opsForValue().set("catalogJSON", catalogJson, 1, TimeUnit.DAYS);
 
-        return parentCid;
+        return catalogDataFromDB;
     }
 
     /**
@@ -228,7 +246,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
         // 本地🔒
         synchronized (this) {
-            return this.getCatalogDataFromDB();
+            return this.getCatalogDataFromDBWithCache();
         }
     }
 
@@ -280,7 +298,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             // 加锁成功。。。执行业务
             Map<String, List<Catalogs2Vo>> catalogDataFromDB;
             try {
-                catalogDataFromDB = this.getCatalogDataFromDB();
+                catalogDataFromDB = this.getCatalogDataFromDBWithCache();
             } finally {
                 // 获取值对比 + 对比成功删除=原子操作 使用 Lua 脚本
                 String script = "if redis.call('get',KEYS[1]) == ARGV[1] then return redis.call('get',KEYS[1]) else return 0 end";
@@ -325,7 +343,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         // 加锁成功。。。执行业务
         Map<String, List<Catalogs2Vo>> catalogDataFromDB;
         try {
-            catalogDataFromDB = this.getCatalogDataFromDB();
+            catalogDataFromDB = this.getCatalogDataFromDBWithCache();
         } finally {
             lock.unlock();
         }
