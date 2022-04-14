@@ -2,11 +2,11 @@ package com.gmy.gulimall.search.service.impl;
 
 import com.alibaba.cloud.commons.lang.StringUtils;
 import com.gmy.common.constant.EsConstant;
-import com.gmy.gulimall.search.GulimallSearchApplication;
 import com.gmy.gulimall.search.config.GulimallElasticsearchConfig;
 import com.gmy.gulimall.search.service.MallSearchService;
 import com.gmy.gulimall.search.vo.SearchParam;
 import com.gmy.gulimall.search.vo.SearchRes;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -22,10 +22,14 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.naming.directory.SearchResult;
 import java.io.IOException;
 
+
+@Slf4j
+@Service
 public class MallSearchServiceImpl implements MallSearchService {
 
     @Autowired
@@ -124,8 +128,66 @@ public class MallSearchServiceImpl implements MallSearchService {
         searchSourceBuilder.query(boolQueryBuilder);
 
 
+        /**
+         * 排序，分页，高亮
+         */
+        // 2.1 排序  形式为sort=hotScore_asc/desc
+        if (!StringUtils.isEmpty(param.getSort())) {
+            String sort = param.getSort();
+            // sort=hotScore_asc/desc
+            String[] sortFields = sort.split("_");
 
+            SortOrder sortOrder = "asc".equalsIgnoreCase(sortFields[1]) ? SortOrder.ASC : SortOrder.DESC;
+            searchSourceBuilder.sort(sortFields[0], sortOrder);
+        }
 
+        // 2.2 分页 from = (pageNum - 1) * pageSize
+        searchSourceBuilder.from((param.getPageNum() - 1) * EsConstant.PRODUCT_PAGE_SIZE);
+        searchSourceBuilder.size(EsConstant.PRODUCT_PAGE_SIZE);
+
+        // 2.3 高亮
+        if (!StringUtils.isEmpty(param.getKeyword())) {
+            HighlightBuilder highlightBuilder = new HighlightBuilder();
+            highlightBuilder.field("skuTitle");
+            highlightBuilder.preTags("<b style='color:red'>");
+            highlightBuilder.postTags("</b>");
+
+            searchSourceBuilder.highlighter(highlightBuilder);
+        }
+
+        System.out.println("构建的DSL语句" + searchSourceBuilder.toString());
+
+        /**
+         * 聚合分析
+         */
+        //1. 按照品牌进行聚合
+        TermsAggregationBuilder brand_agg = AggregationBuilders.terms("brand_agg");
+        brand_agg.field("brandId").size(50);
+
+        //1.1 品牌的子聚合-品牌名聚合
+        brand_agg.subAggregation(AggregationBuilders.terms("brand_name_agg").field("brandName").size(1));
+        //1.2 品牌的子聚合-品牌图片聚合
+        brand_agg.subAggregation(AggregationBuilders.terms("brand_img_agg").field("brandImg").size(1));
+        searchSourceBuilder.aggregation(brand_agg);
+
+        //2. 按照分类信息进行聚合
+        TermsAggregationBuilder catalog_agg = AggregationBuilders.terms("catalog_agg");
+        catalog_agg.field("catalogId").size(20);
+        catalog_agg.subAggregation(AggregationBuilders.terms("catalog_name_agg").field("catalogName").size(1));
+        searchSourceBuilder.aggregation(catalog_agg);
+
+        // 3. 按照属性信息进行聚合
+        NestedAggregationBuilder attr_agg = AggregationBuilders.nested("attr_agg", "attrs");
+        //3.1 按照属性ID进行聚合
+        TermsAggregationBuilder attr_id_agg = AggregationBuilders.terms("attr_id_agg").field("attrs.attrId");
+        attr_agg.subAggregation(attr_id_agg);
+        //3.1.1 在每个属性ID下，按照属性名进行聚合
+        attr_id_agg.subAggregation(AggregationBuilders.terms("attr_name_agg").field("attrs.attrName").size(1));
+        //3.1.2 在每个属性ID下，按照属性值进行聚合
+        attr_id_agg.subAggregation(AggregationBuilders.terms("attr_value_agg").field("attrs.attrValue").size(50));
+        searchSourceBuilder.aggregation(attr_agg);
+
+        log.debug("构建的DSL语句 {}", searchSourceBuilder);
 
         return new SearchRequest(new String[]{EsConstant.PRODUCT_INDEX}, searchSourceBuilder);
     }
