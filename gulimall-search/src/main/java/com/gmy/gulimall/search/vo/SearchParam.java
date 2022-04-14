@@ -11,7 +11,7 @@ public class SearchParam {
     private String keyword;
 
     // 三级分类的ID
-    private Long catalogId;
+    private Long catalog3Id;
 
     /**
      * saleCount（销量）、hotScore（热度分）、skuPrice（价格）
