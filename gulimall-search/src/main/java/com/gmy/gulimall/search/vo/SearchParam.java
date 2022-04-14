@@ -31,4 +31,7 @@ public class SearchParam {
     private List<String> attrs;
 
     private Integer pageNum;
+
+    // 查询条件
+    private String queryString;
 }

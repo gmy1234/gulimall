@@ -22,12 +22,22 @@ public class SearchRes {
     // 总页码
     private Integer totalPages;
 
+    private List<Integer> pageNavs;
+
     // 查询结果设计到的品牌
     private List<BrandVo> bands;
     // 查询结果涉及到的属性
     private List<AttrVo> attrs;
     // 查询涉及到的所有分类
     private List<CatalogVo> catalogs;
+
+
+
+    //===========================以上是返回给页面的所有信息============================//
+
+
+    /* 面包屑导航数据 */
+    private List<NavVo> navs;
 
     @Data
     public static class BrandVo{
@@ -51,9 +61,16 @@ public class SearchRes {
     @Data
     public static class CatalogVo{
 
-        private String catalogId;
+        private Long catalogId;
 
         private String catalogName;
+    }
+
+    @Data
+    public static class NavVo{
+        private String  navName;
+        private String navValue;
+        private String link;
     }
 
 }
