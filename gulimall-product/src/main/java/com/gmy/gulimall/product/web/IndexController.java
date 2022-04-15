@@ -3,8 +3,6 @@ package com.gmy.gulimall.product.web;
 import com.gmy.gulimall.product.entity.CategoryEntity;
 import com.gmy.gulimall.product.service.CategoryService;
 import com.gmy.gulimall.product.vo.Catalogs2Vo;
-import org.redisson.api.RLock;
-import org.redisson.api.RSemaphore;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.EnableCaching;
