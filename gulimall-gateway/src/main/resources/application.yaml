@@ -66,8 +66,8 @@ spring:
           filters:
             - RewritePath=/api/?(?<segment>.*), /renren-fast/$\{segment}
 
-        #  跳转服务
-#        - id: gulimall_host_route
-#          uri: lb://gulimall-product
-#          predicates:
-#            - Host=gulimall.com
+        # nginx 跳转商品服务
+        - id: gulimall_host_route
+          uri: lb://gulimall-product
+          predicates:
+            - Host=gulimall.com
