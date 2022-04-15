@@ -3,7 +3,6 @@ package com.gmy.gulimall.search.controller;
 import com.gmy.gulimall.search.service.MallSearchService;
 import com.gmy.gulimall.search.vo.SearchParam;
 import com.gmy.gulimall.search.vo.SearchRes;
-import org.apache.http.impl.bootstrap.HttpServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,6 +25,6 @@ public class SearchController {
         searchKey.setQueryString(queryString);
 
         model.addAttribute("result", result);
-        return "list";
+        return "index";
     }
 }

@@ -1,9 +1,11 @@
 server:
-  port: 6000
+  port: 6001
 
 spring:
   profiles:
     include: environment
+  thymeleaf:
+    cache: false
   application:
     name: gulimall-search
 
