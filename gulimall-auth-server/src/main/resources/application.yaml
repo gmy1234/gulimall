@@ -1,0 +1,12 @@
+server:
+  port: 5001
+
+spring:
+  cloud:
+    # 配置nacos 的地址
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+  application:
+    name: gulimall-auth-server
+
