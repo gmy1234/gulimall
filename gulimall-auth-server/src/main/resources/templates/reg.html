@@ -5981,7 +5981,8 @@ Cookie</span>是由网页服务器存放在您的访问设备上的文本文件�
             <label for="username" class="other_label">验 证 码
                 <input maxlength="20" type="text" placeholder="请输入验证码" class="caa">
             </label>
-            <span id="code"></span>
+			<a id="sendCode" > 发送验证码</a>
+<!--            <span id="code"></span>-->
             <div class="tips">
 
             </div>
@@ -6238,6 +6239,33 @@ Cookie</span>是由网页服务器存放在您的访问设备上的文本文件�
     $(".cuo").click(function () {
         $(".zong").hide();
     });
+
+//	验证码倒计时：
+	$(function (){
+		$("#sendCode").click(function (){
+			// 1.给指定的手机号发验证码
+
+			// 2.进入倒计时
+			// setTimeout("timeoutChangeStyle()", 1000);
+			if ($(this).hasClass("disabled")){
+				// 正在倒计时
+			}else {
+				timeoutChangeStyle();
+			}
+		})
+	})
+	var num = 60;
+	function timeoutChangeStyle(){
+		$("#sendCode").attr("class", "disabled")
+		num --;
+		if(num === 0){
+			$("#sendCode").text("发送验证码");
+			num = 60;
+		}
+		let str = num + "s 后再次发送";
+		$("#sendCode").text(str);
+		setTimeout("timeoutChangeStyle()", 1000);
+	}
 </script>
 </body>
 

@@ -12,5 +12,7 @@ spring:
       oss:
         endpoint: oss-cn-beijing.aliyuncs.com
         bucket: gulimall-gmy
+
+
 server:
   port: 30000
