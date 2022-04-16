@@ -20,11 +20,11 @@ public class SearchController {
     @GetMapping("/list.html")
     public String listPage(SearchParam searchKey, Model model, HttpServletRequest request){
 
-//        SearchRes result = mallSearchService.search(searchKey);
-//        String queryString = request.getQueryString();
-//        searchKey.setQueryString(queryString);
+        SearchRes result = mallSearchService.search(searchKey);
+        String queryString = request.getQueryString();
+        searchKey.setQueryString(queryString);
 
-        //model.addAttribute("result", result);
+        model.addAttribute("result", result);
         return "list";
     }
 }

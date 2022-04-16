@@ -74,7 +74,7 @@ public class MallSearchServiceImpl implements MallSearchService {
             e.printStackTrace();
         }
 
-        return null;
+        return searchResult;
     }
 
 
