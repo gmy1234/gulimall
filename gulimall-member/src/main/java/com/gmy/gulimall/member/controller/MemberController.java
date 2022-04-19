@@ -6,11 +6,7 @@ import java.util.Map;
 import com.gmy.gulimall.member.feign.CouponFeignService;
 import com.gmy.gulimall.member.vo.MemberRegisterVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.gmy.gulimall.member.entity.MemberEntity;
 import com.gmy.gulimall.member.service.MemberService;
@@ -34,9 +30,10 @@ public class MemberController {
     @Autowired
     CouponFeignService couponFeignService;
 
-    @RequestMapping("/register")
+    @PostMapping("/register")
     public R Register(@RequestBody MemberRegisterVo vo){
 
+        System.out.println("远程调用注册服务了");
         memberService.register(vo);
         return R.ok();
     }

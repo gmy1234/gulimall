@@ -56,7 +56,6 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         MemberLevelEntity defaultLevel = memberLevelService.getDefaultLevel();
         memberEntity.setLevelId(defaultLevel.getId());
         this.baseMapper.insert(memberEntity);
-
     }
 
     @Override
