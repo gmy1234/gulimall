@@ -5,6 +5,7 @@ import com.gmy.gulimall.member.service.MemberLevelService;
 import com.gmy.gulimall.member.vo.MemberRegisterVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -43,18 +44,18 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         // 2。检查手机号是否唯一
         boolean phone = this.checkPhone(vo.getPhone());
 
-
         memberEntity.setUsername(vo.getUserName());
-        memberEntity.setPassword(vo.getPassword());
         memberEntity.setMobile(vo.getPhone());
+
+        // 密码加密存储；
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String encode = passwordEncoder.encode(vo.getPassword());
+        memberEntity.setPassword(encode);
 
         // 设置默认等级
         MemberLevelEntity defaultLevel = memberLevelService.getDefaultLevel();
         memberEntity.setLevelId(defaultLevel.getId());
         this.baseMapper.insert(memberEntity);
-
-
-
 
     }
 

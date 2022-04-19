@@ -17,6 +17,11 @@ public interface MemberLevelService extends IService<MemberLevelEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
 
+    /**
+     * 获取会员默认等级
+     *
+     * @return 默认等级的实体信息
+     */
     MemberLevelEntity getDefaultLevel();
 }
 
