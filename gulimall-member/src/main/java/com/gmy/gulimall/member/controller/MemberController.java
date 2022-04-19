@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import com.gmy.gulimall.member.feign.CouponFeignService;
+import com.gmy.gulimall.member.vo.MemberRegisterVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,6 +33,15 @@ public class MemberController {
     private MemberService memberService;
     @Autowired
     CouponFeignService couponFeignService;
+
+    @RequestMapping("/register")
+    public R Register(@RequestBody MemberRegisterVo vo){
+
+        memberService.register(vo);
+        return R.ok();
+    }
+
+
 
     @RequestMapping("/coupons")
     public R test(){

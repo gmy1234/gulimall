@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 @Controller
 public class LoginController {
 
-
     @PostMapping("/register")
     public String register(@Valid UserRegisterVo vo, BindingResult bindingResult,
                            RedirectAttributes redirectAttributes){
@@ -36,6 +35,9 @@ public class LoginController {
              */
             return "redirect:http://auth.gulimall.com/register.html";
         }
+
+        //真正的注册，远程调用服务
+        // TODO：验证码未校验
 
         return "redirect:/login.html";
     }
