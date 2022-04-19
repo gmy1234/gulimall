@@ -3,7 +3,9 @@ package com.gmy.gulimall.member.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.gmy.common.exception.BizCodeEnume;
 import com.gmy.gulimall.member.feign.CouponFeignService;
+import com.gmy.gulimall.member.vo.MemberLoginVo;
 import com.gmy.gulimall.member.vo.MemberRegisterVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -30,14 +32,27 @@ public class MemberController {
     @Autowired
     CouponFeignService couponFeignService;
 
+    @PostMapping("/login")
+    public R Login(@RequestBody MemberLoginVo vo){
+
+        System.out.println("远程调用login服务了");
+        MemberEntity entity = memberService.login(vo);
+        if (entity != null) {
+            return R.ok();
+
+        }
+        return R.error(BizCodeEnume.ACCOUNT_PASSWORD_EXCEPTION.getCode(),
+                BizCodeEnume.ACCOUNT_PASSWORD_EXCEPTION.getMsg());
+    }
+
+
+
     @PostMapping("/register")
     public R Register(@RequestBody MemberRegisterVo vo){
-
         System.out.println("远程调用注册服务了");
         memberService.register(vo);
         return R.ok();
     }
-
 
 
     @RequestMapping("/coupons")

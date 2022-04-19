@@ -3,6 +3,7 @@ package com.gmy.gulimall.member.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.gmy.common.utils.PageUtils;
 import com.gmy.gulimall.member.entity.MemberEntity;
+import com.gmy.gulimall.member.vo.MemberLoginVo;
 import com.gmy.gulimall.member.vo.MemberRegisterVo;
 
 import java.util.Map;
@@ -23,5 +24,12 @@ public interface MemberService extends IService<MemberEntity> {
     boolean checkPhone(String phone);
 
     boolean checkUserName(String username);
+
+    /**
+     * 用户登陆
+     * @param vo 前段提交的数据
+     * @return
+     */
+    MemberEntity login(MemberLoginVo vo);
 }
 

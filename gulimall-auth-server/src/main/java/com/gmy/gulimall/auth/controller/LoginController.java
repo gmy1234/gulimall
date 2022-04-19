@@ -1,8 +1,11 @@
 package com.gmy.gulimall.auth.controller;
 
 
+import com.alibaba.fastjson.TypeReference;
 import com.gmy.common.utils.R;
 import com.gmy.gulimall.auth.feign.MemberFeignService;
+import com.gmy.gulimall.auth.vo.MemberLoginVo;
+import com.gmy.gulimall.auth.vo.UserLoginVo;
 import com.gmy.gulimall.auth.vo.UserRegisterVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -54,6 +58,25 @@ public class LoginController {
             return "redirect:http://auth.gulimall.com/register.html";
         }
 
+    }
+
+
+    @PostMapping("/login")
+    public String login(MemberLoginVo vo, RedirectAttributes redirectAttributes){
+
+        R login = memberFeignService.Login(vo);
+        if (login.getCode() == 0) {
+            // 成功
+            return "redirect:http://gulimall.com";
+
+        }else {
+            HashMap<String, String> error = new HashMap<>();
+            error.put("msg", login.getData("msg", new TypeReference<String>(){}));
+            redirectAttributes.addFlashAttribute("error", error);
+
+            return "redirect:http://auth.gulimall.com/register.html";
+
+        }
     }
 
 

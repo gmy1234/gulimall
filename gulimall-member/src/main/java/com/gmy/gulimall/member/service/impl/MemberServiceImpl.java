@@ -1,7 +1,9 @@
 package com.gmy.gulimall.member.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.gmy.gulimall.member.entity.MemberLevelEntity;
 import com.gmy.gulimall.member.service.MemberLevelService;
+import com.gmy.gulimall.member.vo.MemberLoginVo;
 import com.gmy.gulimall.member.vo.MemberRegisterVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +68,32 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
     @Override
     public boolean checkUserName(String username) {
         return false;
+    }
+
+    @Override
+    public MemberEntity login(MemberLoginVo vo) {
+
+        String loginAcct = vo.getLoginAcct();
+        // 页面传来的密码
+        String password = vo.getPassword();
+
+        LambdaQueryWrapper<MemberEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(MemberEntity::getUsername, loginAcct)
+                .or()
+                .eq(MemberEntity::getMobile, loginAcct);
+        MemberEntity user = this.baseMapper.selectOne(wrapper);
+
+        if (user != null) {
+            // 数据库里来的密码
+            String passwordFromDB = user.getPassword();
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            // 密码是否匹配？
+            boolean matches = passwordEncoder.matches(password, passwordFromDB);
+            if (matches) {
+                return user;
+            }
+        }
+        return null;
     }
 
 }
