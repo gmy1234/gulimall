@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.gmy.guliorder.order.entity.OrderReturnReasonEntity;
 import com.gmy.guliorder.order.service.OrderReturnReasonService;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -14,6 +15,9 @@ class GulimallOrderApplicationTests {
 
     @Autowired
     OrderReturnReasonService orderReturnReasonService;
+
+    @Autowired
+    AmqpAdmin amqpAdmin;
 
     @Test
     void contextLoads() {
@@ -26,6 +30,11 @@ class GulimallOrderApplicationTests {
         final List<OrderReturnReasonEntity> list = orderReturnReasonService.list(
                 new QueryWrapper<OrderReturnReasonEntity>().eq("name", "iii"));
         list.forEach(System.out::println);
+    }
+
+    @Test
+    void rabbitMQ(){
+
     }
 
 }
