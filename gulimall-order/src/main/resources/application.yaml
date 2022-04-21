@@ -19,6 +19,9 @@ spring:
     host: localhost
     port: 5672
     virtual-host: /
+    # 开启发送确认
+    publisher-confirm-type: CORRELATED
+
 
 # mybatis-plus
 mybatis-plus:
