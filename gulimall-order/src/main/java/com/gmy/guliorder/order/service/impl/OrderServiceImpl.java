@@ -3,6 +3,10 @@ package com.gmy.guliorder.order.service.impl;
 import com.gmy.guliorder.order.dao.OrderDao;
 import com.gmy.guliorder.order.entity.OrderEntity;
 import com.gmy.guliorder.order.service.OrderService;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.annotation.RabbitHandler;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -27,5 +31,29 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         return new PageUtils(page);
     }
+
+
+    /**
+     * 监听消息 @RabbitListener 注解
+     * 可以写的参数类型：
+     *  1。Message  消息头 + 消息体
+     *  2. T<发送的消息类型>  OrderEntity()
+     *  3。Channel channel 当前传输的通道
+     *  Queue：可以多人来监听，但是只有一个能收到消息。
+     *      场景：
+     *          1。订单服务启动多个，同一个消息，只能有1个客户端收到
+     *          2。只有一个消息完全处理完（方法运行完），才会接受下一个消息
+     * @param obj
+     */
+    @RabbitHandler
+    @RabbitListener(queues = {"my-queue"})
+    public void acceptMessage(Message obj){
+        // 消息体
+        byte[] body = obj.getBody();
+        // 消息头
+        MessageProperties messageProperties = obj.getMessageProperties();
+        System.out.println("接收到消息了: -->" + obj);
+    }
+
 
 }
