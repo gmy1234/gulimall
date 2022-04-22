@@ -27,6 +27,11 @@ spring:
     template:
       mandatory: true
 
+    # 手动ack消息
+    listener:
+      simple:
+        acknowledge-mode: MANUAL
+
 
 # mybatis-plus
 mybatis-plus:
