@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
@@ -32,8 +33,7 @@ public class OAuth2Controller {
         this.memberFeignService = memberFeignService;
     }
 
-
-    @GetMapping("/auth2.0/weibo/success")
+    @GetMapping("/auth2/weibo/success")
     public String weibo(@RequestParam("code") String code, HttpSession session) throws Exception {
 
         // 1.根据code 环球 access——token

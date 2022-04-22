@@ -31,6 +31,8 @@ spring:
     listener:
       simple:
         acknowledge-mode: MANUAL
+  session:
+    store-type: redis
 
 
 # mybatis-plus
