@@ -26,7 +26,9 @@ public enum BizCodeEnume {
     /* 商品上架错误 */
     PRODUCT_UP_EXCEPTION(11000, "商品上架异常"),
 
-    ACCOUNT_PASSWORD_EXCEPTION(15003, "账号或密码错误");
+    ACCOUNT_PASSWORD_EXCEPTION(15003, "账号或密码错误"),
+
+    LOGIN_ACCOUNT_PASSWORD_EXCEPTION(16000, "密码错误");
 
     private int code;
     private String msg;

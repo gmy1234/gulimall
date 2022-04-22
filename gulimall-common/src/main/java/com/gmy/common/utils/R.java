@@ -26,6 +26,11 @@ import java.util.Map;
 public class R extends HashMap<String, Object> {
 	private static final long serialVersionUID = 1L;
 
+	public R setData(Object data) {
+		put("data", data);
+		return this;
+	}
+
 
 	// 利用fastjson 逆转
 	public <T> T getData(TypeReference<T> typeReference){
@@ -88,5 +93,4 @@ public class R extends HashMap<String, Object> {
 	public Integer getCode() {
 		return (Integer) this.get("code");
 	}
-
 }

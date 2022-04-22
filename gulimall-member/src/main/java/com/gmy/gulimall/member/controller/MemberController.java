@@ -7,6 +7,7 @@ import com.gmy.common.exception.BizCodeEnume;
 import com.gmy.gulimall.member.feign.CouponFeignService;
 import com.gmy.gulimall.member.vo.MemberLoginVo;
 import com.gmy.gulimall.member.vo.MemberRegisterVo;
+import com.gmy.gulimall.member.vo.SocialUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,6 +52,30 @@ public class MemberController {
     public R Register(@RequestBody MemberRegisterVo vo){
         System.out.println("远程调用注册服务了");
         memberService.register(vo);
+        return R.ok();
+    }
+
+    @PostMapping(value = "/oauth2/login")
+    public R oauthLogin(@RequestBody SocialUser socialUser) throws Exception {
+
+        MemberEntity memberEntity = memberService.login(socialUser);
+
+        if (memberEntity != null) {
+            return R.ok().setData(memberEntity);
+        } else {
+            return R.error(BizCodeEnume.LOGIN_ACCOUNT_PASSWORD_EXCEPTION.getCode(), BizCodeEnume.LOGIN_ACCOUNT_PASSWORD_EXCEPTION.getMsg());
+        }
+    }
+
+    @PostMapping(value = "/weixin/login")
+    public R weixinLogin(@RequestParam("accessTokenInfo") String accessTokenInfo) {
+
+//        MemberEntity memberEntity = memberService.login(accessTokenInfo);
+//        if (memberEntity != null) {
+//            return R.ok().setData(memberEntity);
+//        } else {
+//            return R.error(BizCodeEnum.LOGIN_ACCOUNT_PASSWORD_EXCEPTION.getCode(), BizCodeEnum.LOGIN_ACCOUNT_PASSWORD_EXCEPTION.getMsg());
+//        }
         return R.ok();
     }
 

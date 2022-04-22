@@ -5,6 +5,7 @@ import com.gmy.common.utils.PageUtils;
 import com.gmy.gulimall.member.entity.MemberEntity;
 import com.gmy.gulimall.member.vo.MemberLoginVo;
 import com.gmy.gulimall.member.vo.MemberRegisterVo;
+import com.gmy.gulimall.member.vo.SocialUser;
 
 import java.util.Map;
 
@@ -31,5 +32,7 @@ public interface MemberService extends IService<MemberEntity> {
      * @return
      */
     MemberEntity login(MemberLoginVo vo);
+
+    MemberEntity login(SocialUser socialUser) throws Exception;
 }
 
