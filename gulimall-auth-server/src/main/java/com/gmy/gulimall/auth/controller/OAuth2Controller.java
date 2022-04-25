@@ -14,10 +14,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
+
+import static com.gmy.common.constant.AuthServerConstant.LOGIN_USER;
 
 /**
  * 处理社交登陆请求
@@ -64,7 +65,6 @@ public class OAuth2Controller {
                 MemberResponseVo data = oauthLogin.getData("data", new TypeReference<MemberResponseVo>() {
                 });
                 log.info("登录成功：用户信息：{}", data.toString());
-
                 //1、第一次使用session，命令浏览器保存卡号，JSESSIONID这个cookie
                 //以后浏览器访问哪个网站就会带上这个网站的cookie
                 //TODO 1、默认发的令牌。当前域（解决子域session共享问题）
