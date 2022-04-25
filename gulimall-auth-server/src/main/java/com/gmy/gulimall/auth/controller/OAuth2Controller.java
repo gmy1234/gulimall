@@ -33,18 +33,18 @@ public class OAuth2Controller {
         this.memberFeignService = memberFeignService;
     }
 
-    @GetMapping("/auth2/weibo/success")
+    @GetMapping("/oauth2.0/weibo/success")
     public String weibo(@RequestParam("code") String code, HttpSession session) throws Exception {
 
         // 1.根据code 环球 access——token
         HashMap<String, String> map = new HashMap<>();
         map.put("client_id", "218496648");
-        map.put("secret", "b6593c80eaf98eed99b0507c20c235c4");
+        map.put("client_secret", "b6593c80eaf98eed99b0507c20c235c4");
         map.put("grant_type", "authorization_code");
-        map.put("redirect_uri", "http://gulimall.com/auth2.0/weibo/success");
+        map.put("redirect_uri", "http://auth.gulimall.com/oauth2.0/weibo/success");
         map.put("code", code);
         HttpResponse response = HttpUtils.doPost("https://api.weibo.com", "/oauth2/access_token", "post",
-                null, null, map);
+                new HashMap<>(), new HashMap<>(), map);
 
 
         //2、处理

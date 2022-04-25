@@ -108,12 +108,14 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
     @Override
     public MemberEntity login(SocialUser socialUser) throws Exception{
 
+        System.out.println("远程调用了Member服务----");
         // 登陆和注册合并逻辑
         String uid = socialUser.getUid();
 
         //1、判断当前社交用户是否已经登录过系统
         MemberEntity memberEntity = baseMapper.selectOne(
                 new QueryWrapper<MemberEntity>().eq("social_uid", uid));
+        System.out.println("memberEntity-：" + memberEntity);
 
         if (memberEntity != null) {
             //这个用户已经注册过
