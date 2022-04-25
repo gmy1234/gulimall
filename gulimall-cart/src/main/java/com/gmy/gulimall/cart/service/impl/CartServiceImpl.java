@@ -2,6 +2,7 @@ package com.gmy.gulimall.cart.service.impl;
 
 import com.alibaba.fastjson.TypeReference;
 import com.gmy.common.utils.R;
+import com.gmy.gulimall.cart.config.ThreadPoolConfigProperties;
 import com.gmy.gulimall.cart.feign.ProductFeignService;
 import com.gmy.gulimall.cart.interceptor.CartInterceptor;
 import com.gmy.gulimall.cart.service.CartService;
@@ -16,7 +17,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Service("cartService")
@@ -29,6 +32,9 @@ public class CartServiceImpl implements CartService{
 
     @Autowired
     ProductFeignService productFeignService;
+
+    @Autowired
+    ThreadPoolExecutor executor;
 
     /**
      * // 获取到要操作的购物车
@@ -52,20 +58,31 @@ public class CartServiceImpl implements CartService{
     public CartItemVo addToCart(Long skuId, Integer num) throws ExecutionException, InterruptedException {
         // 获取到要操作的购物车
         BoundHashOperations<String, Object, Object> cartOps = getCartOps();
-
-        // 远程调用接口，通过ID 查询 sku信息
-        R info = productFeignService.getSkuInfo(skuId);
-        SkuInfoVo skuInfo = info.getData("skuInfo", new TypeReference<SkuInfoVo>(){});
-        // 2.商品添加到 购物车
         CartItemVo cartItemVo = new CartItemVo();
-        cartItemVo.setSkuId(skuId);
-        cartItemVo.setCheck(true);
-        cartItemVo.setCount(1);
-        cartItemVo.setImage(skuInfo.getSkuDefaultImg());
-        cartItemVo.setTitle(skuInfo.getSkuTitle());
-        cartItemVo.setPrice(skuInfo.getPrice());
-        // 远程查询 SKU的组合信息
-        cartItemVo.setSkuAttrValues(null);
+
+
+        // 异步编排，查询SKU信息和 sku的组合信息
+        CompletableFuture<Void> Task = CompletableFuture.runAsync(() -> {
+            // 远程调用接口，通过ID 查询 sku信息
+            R info = productFeignService.getSkuInfo(skuId);
+            SkuInfoVo skuInfo = info.getData("skuInfo", new TypeReference<SkuInfoVo>(){});
+
+            // 2.商品添加到 购物车
+            cartItemVo.setSkuId(skuId);
+            cartItemVo.setCheck(true);
+            cartItemVo.setCount(1);
+            cartItemVo.setImage(skuInfo.getSkuDefaultImg());
+            cartItemVo.setTitle(skuInfo.getSkuTitle());
+            cartItemVo.setPrice(skuInfo.getPrice());
+            // 远程查询 SKU的组合信息
+            cartItemVo.setSkuAttrValues(null);
+        }, executor);
+
+        // 3.封装远程调用查询 sku的组合信息。
+        CompletableFuture<Void> getSkuSaleAttrValues = CompletableFuture.runAsync(() -> {
+            List<String> values = productFeignService.getSkuAttrValuesBySkuId(skuId);
+            cartItemVo.setSkuAttrValues(values);
+        }, executor);
 
 
 
