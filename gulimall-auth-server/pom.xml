@@ -18,6 +18,16 @@
         <spring-cloud.version>2021.0.1</spring-cloud.version>
     </properties>
     <dependencies>
+        <!-- spring session 共享问题-->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.gmy.guilmall</groupId>
