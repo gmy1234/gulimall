@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gmy.common.utils.PageUtils;
 import com.gmy.common.utils.R;
 
+import javax.annotation.Resource;
+
 /**
  * 订单
  *
@@ -24,7 +26,7 @@ import com.gmy.common.utils.R;
 @RestController
 @RequestMapping("order/order")
 public class OrderController {
-    @Autowired
+    @Resource
     private OrderService orderService;
 
     /**
