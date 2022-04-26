@@ -57,6 +57,10 @@ public interface CartService {
      */
     void deleteIdCartInfo(Integer skuId);
 
+    /**
+     * 获取用户的购物车 里数据
+     * @return
+     */
     List<CartItemVo> getUserCartItems();
 
 

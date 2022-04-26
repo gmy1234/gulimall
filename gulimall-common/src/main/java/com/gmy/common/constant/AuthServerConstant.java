@@ -7,4 +7,5 @@ public class AuthServerConstant {
 
     public static final int TEMP_USER_COOKIE_TIMEOUT = 30;
 
+    public static final String SESSION_ATTR_NAME = "sessionAttrName";
 }

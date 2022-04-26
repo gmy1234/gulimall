@@ -225,7 +225,7 @@ public class CartServiceImpl implements CartService{
 
     @Override
     public List<CartItemVo> getUserCartItems() {
-        List<CartItemVo> cartItemVoList = new ArrayList<>();
+        List<CartItemVo> cartItemVoList;
         //获取当前用户登录的信息
         UserInfoTo userInfoTo = CartInterceptor.toThreadLocal.get();
         //如果用户未登录直接返回null
@@ -245,6 +245,7 @@ public class CartServiceImpl implements CartService{
                     .peek(item -> {
                         // 更新为最新的价格（查询数据库）
                         BigDecimal price = productFeignService.getPrice(item.getSkuId());
+                        // TODO:更新为最新价格
                         item.setPrice(price);
                     }).collect(Collectors.toList());
         }

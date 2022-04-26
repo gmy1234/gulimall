@@ -4,6 +4,7 @@ package com.gmy.guliorder.order.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.gmy.common.utils.PageUtils;
 import com.gmy.guliorder.order.entity.OrderEntity;
+import com.gmy.guliorder.order.vo.OrderConfirmVo;
 
 
 import java.util.Map;
@@ -18,5 +19,11 @@ import java.util.Map;
 public interface OrderService extends IService<OrderEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
+
+    /**
+     * 订单确认页返回需要的数据
+     * @return
+     */
+    OrderConfirmVo confirmOrder();
 }
 

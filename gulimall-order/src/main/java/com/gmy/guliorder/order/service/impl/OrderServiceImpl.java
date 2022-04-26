@@ -1,13 +1,21 @@
 package com.gmy.guliorder.order.service.impl;
 
+import com.gmy.common.vo.MemberResponseVo;
 import com.gmy.guliorder.order.dao.OrderDao;
 import com.gmy.guliorder.order.entity.OrderEntity;
+import com.gmy.guliorder.order.feign.CartFeignService;
+import com.gmy.guliorder.order.feign.MemberFeignService;
+import com.gmy.guliorder.order.interceptor.LoginUserInterceptor;
 import com.gmy.guliorder.order.service.OrderService;
+import com.gmy.guliorder.order.vo.OrderConfirmVo;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -22,6 +30,13 @@ import com.gmy.common.utils.Query;
 @Service("orderService")
 public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> implements OrderService {
 
+    @Autowired
+    MemberFeignService memberFeignService;
+
+    @Autowired
+    CartFeignService cartFeignService;
+
+
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
         IPage<OrderEntity> page = this.page(
@@ -30,6 +45,32 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public OrderConfirmVo confirmOrder() {
+        OrderConfirmVo confirmVo = new OrderConfirmVo();
+
+        MemberResponseVo memberResponseVo = LoginUserInterceptor.loginUser.get();
+
+        // 1. 远程查询 所有的收获列表
+        List<OrderConfirmVo.MemberAddressVO> userAddress = memberFeignService.getAddressById(memberResponseVo.getId());
+        confirmVo.setAddress(userAddress);
+        // 2. 远程查询购物车所有选中的购物项
+        List<OrderConfirmVo.OrderItemVO> cartItems = cartFeignService.getCurrentUserCartItems();
+        confirmVo.setItems(cartItems);
+        // 3.用户的积分
+        Integer integration = memberResponseVo.getIntegration();
+        confirmVo.setIntegration(integration);
+
+        // 4. 其他计算
+
+        // TODO:5.订单防止重复令牌
+
+
+
+
+        return confirmVo;
     }
 
 
