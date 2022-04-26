@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.gmy.common.utils.R;
+import com.gmy.gulimall.cart.exception.CartExceptionHandler;
 import com.gmy.gulimall.cart.feign.ProductFeignService;
 import com.gmy.gulimall.cart.interceptor.CartInterceptor;
 import com.gmy.gulimall.cart.service.CartService;
@@ -17,6 +18,7 @@ import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -179,6 +181,7 @@ public class CartServiceImpl implements CartService{
     @Override
     public void clearCartInfo(String cartKey) {
 
+
     }
 
     @Override
@@ -207,13 +210,45 @@ public class CartServiceImpl implements CartService{
         cartOps.put(skuId.toString(), redisValue);
     }
 
+    /**
+     * 删除购物项
+     *
+     * @param skuId 商品的 ID
+     */
     @Override
     public void deleteIdCartInfo(Integer skuId) {
+
+        BoundHashOperations<String, Object, Object> cartOps = getCartOps();
+        cartOps.delete(skuId.toString());
 
     }
 
     @Override
     public List<CartItemVo> getUserCartItems() {
-        return null;
+        List<CartItemVo> cartItemVoList = new ArrayList<>();
+        //获取当前用户登录的信息
+        UserInfoTo userInfoTo = CartInterceptor.toThreadLocal.get();
+        //如果用户未登录直接返回null
+        if (userInfoTo.getUserId() == null) {
+            return null;
+        } else {
+            //获取购物车项
+            String cartKey = CART_PREFIX + userInfoTo.getUserId();
+            //获取所有的
+            List<CartItemVo> cartItems = getCartItems(cartKey);
+            if (cartItems == null) {
+                throw new CartExceptionHandler();
+            }
+            // 筛选出选中的
+            cartItemVoList = cartItems.stream()
+                    .filter(CartItemVo::getCheck)
+                    .peek(item -> {
+                        // 更新为最新的价格（查询数据库）
+                        BigDecimal price = productFeignService.getPrice(item.getSkuId());
+                        item.setPrice(price);
+                    }).collect(Collectors.toList());
+        }
+
+        return cartItemVoList;
     }
 }
