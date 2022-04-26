@@ -115,7 +115,10 @@ public class CartServiceImpl implements CartService{
 
     @Override
     public CartItemVo getCartItem(Long skuId) {
-        return null;
+        //拿到要操作的购物车信息
+        BoundHashOperations<String, Object, Object> cartOps = getCartOps();
+        String redisValue = (String) cartOps.get(skuId.toString());
+        return JSON.parseObject(redisValue, CartItemVo.class);
     }
 
     @Override
