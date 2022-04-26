@@ -11,15 +11,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  **/
 
 @ConfigurationProperties(prefix = "gulimall.thread")
-// @Component
+//@Component
 @Data
 public class ThreadPoolConfigProperties {
 
-    private Integer coreSize;
+    private Integer coreSize = 5;
 
-    private Integer maxSize;
+    private Integer maxSize = 15;
 
-    private Integer keepAliveTime;
+    private Integer keepAliveTime = 20;
 
 
 }

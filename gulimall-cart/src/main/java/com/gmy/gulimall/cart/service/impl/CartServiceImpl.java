@@ -1,8 +1,9 @@
 package com.gmy.gulimall.cart.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.alibaba.nacos.common.utils.StringUtils;
 import com.gmy.common.utils.R;
-import com.gmy.gulimall.cart.config.ThreadPoolConfigProperties;
 import com.gmy.gulimall.cart.feign.ProductFeignService;
 import com.gmy.gulimall.cart.interceptor.CartInterceptor;
 import com.gmy.gulimall.cart.service.CartService;
@@ -16,10 +17,9 @@ import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 @Slf4j
 @Service("cartService")
@@ -34,7 +34,7 @@ public class CartServiceImpl implements CartService{
     ProductFeignService productFeignService;
 
     @Autowired
-    ThreadPoolExecutor executor;
+    private ThreadPoolExecutor executor;
 
     /**
      * // 获取到要操作的购物车
@@ -58,35 +58,57 @@ public class CartServiceImpl implements CartService{
     public CartItemVo addToCart(Long skuId, Integer num) throws ExecutionException, InterruptedException {
         // 获取到要操作的购物车
         BoundHashOperations<String, Object, Object> cartOps = getCartOps();
-        CartItemVo cartItemVo = new CartItemVo();
 
+        String redisData = (String) cartOps.get(skuId.toString());
+        // 判断购物车里是否有数据。
+        if (StringUtils.isBlank(redisData)) {
+            // 购物车无此商品，
+            CartItemVo cartItemVo = new CartItemVo();
 
-        // 异步编排，查询SKU信息和 sku的组合信息
-        CompletableFuture<Void> Task = CompletableFuture.runAsync(() -> {
-            // 远程调用接口，通过ID 查询 sku信息
-            R info = productFeignService.getSkuInfo(skuId);
-            SkuInfoVo skuInfo = info.getData("skuInfo", new TypeReference<SkuInfoVo>(){});
+            // 开启第一个异步编排，查询SKU信息和 sku的组合信息
+            CompletableFuture<Void> getSkuInfoFuture = CompletableFuture.runAsync(() -> {
+                // 远程调用接口，通过ID 查询 sku信息
+                R info = productFeignService.getSkuInfo(skuId);
+                SkuInfoVo skuInfo = info.getData("skuInfo", new TypeReference<SkuInfoVo>(){});
+                System.out.println(skuInfo);
+                // 2.商品添加到 购物车
+                cartItemVo.setSkuId(skuId);
+                cartItemVo.setCheck(true);
+                cartItemVo.setCount(num);
+                if (skuInfo.getSkuDefaultImg() != null){
+                    cartItemVo.setImage(skuInfo.getSkuDefaultImg());
+                }
+                cartItemVo.setTitle(skuInfo.getSkuTitle());
+                cartItemVo.setPrice(skuInfo.getPrice());
+            }, executor);
 
-            // 2.商品添加到 购物车
-            cartItemVo.setSkuId(skuId);
-            cartItemVo.setCheck(true);
-            cartItemVo.setCount(1);
-            cartItemVo.setImage(skuInfo.getSkuDefaultImg());
-            cartItemVo.setTitle(skuInfo.getSkuTitle());
-            cartItemVo.setPrice(skuInfo.getPrice());
-            // 远程查询 SKU的组合信息
-            cartItemVo.setSkuAttrValues(null);
-        }, executor);
+            // 开启第二个异步编排.封装远程调用查询 sku的组合信息。
+            CompletableFuture<Void> getSkuSaleAttrValues = CompletableFuture.runAsync(() ->{
+                // 远程查询 SKU的组合信息
+                List<String> values = productFeignService.getSkuAttrValuesBySkuId(skuId);
+                if (values != null && values.size() > 0) {
+                    cartItemVo.setSkuAttrValues(values);
+                }else {
+                    cartItemVo.setSkuAttrValues(new ArrayList<>());
+                }
+            }, executor);
 
-        // 3.封装远程调用查询 sku的组合信息。
-        CompletableFuture<Void> getSkuSaleAttrValues = CompletableFuture.runAsync(() -> {
-            List<String> values = productFeignService.getSkuAttrValuesBySkuId(skuId);
-            cartItemVo.setSkuAttrValues(values);
-        }, executor);
+            // 等待异步任务完成
+            CompletableFuture.allOf(getSkuInfoFuture, getSkuSaleAttrValues).get();
 
+            // 购车的数据保存到 Redis里
+            String s = JSON.toJSONString(cartItemVo);
+            cartOps.put(skuId.toString(), s);
+            return cartItemVo;
 
-
-        return null;
+        }else {
+            // 购物车 有商品
+            CartItemVo item = JSON.parseObject(redisData, CartItemVo.class);
+            item.setCount(item.getCount() + num);
+            // 更新 redis
+            cartOps.put(skuId.toString(), JSON.toJSONString(item));
+            return item;
+        }
     }
 
 

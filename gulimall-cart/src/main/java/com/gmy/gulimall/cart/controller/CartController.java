@@ -9,13 +9,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import java.util.concurrent.ExecutionException;
 
 @Controller
 public class CartController {
 
-    @Autowired
+    @Resource
     CartService cartService;
 
     /**
