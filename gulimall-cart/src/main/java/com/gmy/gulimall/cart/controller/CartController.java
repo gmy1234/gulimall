@@ -29,25 +29,14 @@ public class CartController {
      * @return
      */
     @GetMapping("/cart.html")
-    public String getCartListPage(HttpSession session) {
+    public String getCartListPage() throws ExecutionException, InterruptedException {
 
-        Object attribute = session.getAttribute(AuthServerConstant.LOGIN_USER);
+        //快速得到用户信息：id,user-key
+        // UserInfoTo userInfoTo = CartInterceptor.toThreadLocal.get();
 
-        if (attribute == null) {
-            // 没登陆 去登陆页面
-            return "redirect:http://auth.gulimall.com/login.html";
-        } else {
-            // 登陆了
+        cartService.getCart();
 
-            return "cartList";
-        }
-
-//        //快速得到用户信息：id,user-key
-//        // UserInfoTo userInfoTo = CartInterceptor.toThreadLocal.get();
-//
-//        CartVo cartVo = cartService.getCart();
-//        model.addAttribute("cart", cartVo);
-//        return "cartList";
+        return "cartList";
     }
 
 

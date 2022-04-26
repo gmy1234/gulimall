@@ -34,7 +34,7 @@ public interface CartService {
      * 清空购物车的数据
      * @param cartKey
      */
-    public void clearCartInfo(String cartKey);
+    void clearCartInfo(String cartKey);
 
     /**
      * 勾选购物项

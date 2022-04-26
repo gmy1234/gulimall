@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service("cartService")
@@ -50,7 +51,7 @@ public class CartServiceImpl implements CartService{
             cartKey = CART_PREFIX + userInfoTo.getUserKey();
         }
 
-        // 添加商品的时候，判断Redis 里边是否有 该商品，有的话数量 + num
+        // 绑定 key ，操作对应的key 的 value
         return redisTemplate.boundHashOps(cartKey);
     }
 
@@ -123,6 +124,55 @@ public class CartServiceImpl implements CartService{
 
     @Override
     public CartVo getCart() throws ExecutionException, InterruptedException {
+        CartVo cartVo = new CartVo();
+        UserInfoTo userInfoTo = CartInterceptor.toThreadLocal.get();
+        if (userInfoTo.getUserId() != null) {
+            // 1、登录
+            String cartKey = CART_PREFIX + userInfoTo.getUserId();
+            // 临时购物车的键
+            String temptCartKey = CART_PREFIX + userInfoTo.getUserKey();
+
+            //2、如果临时购物车的数据还未进行合并
+            List<CartItemVo> tempCartItems = getCartItems(temptCartKey);
+            if (tempCartItems != null) {
+                //临时购物车有数据需要进行合并操作
+                for (CartItemVo item : tempCartItems) {
+                    addToCart(item.getSkuId(), item.getCount());
+                }
+                //清除临时购物车的数据
+                clearCartInfo(temptCartKey);
+            }
+
+            //3、获取登录后的购物车数据【包含合并过来的临时购物车的数据和登录后购物车的数据】
+            List<CartItemVo> cartItems = getCartItems(cartKey);
+            cartVo.setItems(cartItems);
+
+        } else {
+            //没登录
+            String cartKey = CART_PREFIX + userInfoTo.getUserKey();
+            //获取临时购物车里面的所有购物项
+            List<CartItemVo> cartItems = getCartItems(cartKey);
+            cartVo.setItems(cartItems);
+        }
+        return cartVo;
+    }
+
+    /**
+     * 获取购物车里面的数据
+     *
+     * @param cartKey
+     * @return
+     */
+    private List<CartItemVo> getCartItems(String cartKey) {
+        //获取购物车里面的所有商品
+        BoundHashOperations<String, Object, Object> operations = redisTemplate.boundHashOps(cartKey);
+        List<Object> values = operations.values();
+        if (values != null && values.size() > 0) {
+            return values.stream().map((obj) -> {
+                String str = (String) obj;
+                return JSON.parseObject(str, CartItemVo.class);
+            }).collect(Collectors.toList());
+        }
         return null;
     }
 
@@ -133,12 +183,28 @@ public class CartServiceImpl implements CartService{
 
     @Override
     public void checkItem(Long skuId, Integer check) {
+        //查询购物车里面的商品
+        CartItemVo cartItem = getCartItem(skuId);
+        //修改商品状态
+        cartItem.setCheck(check == 1);
 
+        //序列化存入redis中
+        String redisValue = JSON.toJSONString(cartItem);
+
+        BoundHashOperations<String, Object, Object> cartOps = getCartOps();
+        cartOps.put(skuId.toString(), redisValue);
     }
 
     @Override
     public void changeItemCount(Long skuId, Integer num) {
+        //查询购物车里面的商品
+        CartItemVo cartItem = getCartItem(skuId);
+        cartItem.setCount(num);
 
+        BoundHashOperations<String, Object, Object> cartOps = getCartOps();
+        //序列化存入redis中
+        String redisValue = JSON.toJSONString(cartItem);
+        cartOps.put(skuId.toString(), redisValue);
     }
 
     @Override
