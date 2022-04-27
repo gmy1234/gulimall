@@ -1,6 +1,7 @@
 package com.gmy.guliorder.order.service.impl;
 
 import com.alibaba.fastjson.TypeReference;
+import com.gmy.common.constant.OrderConstant;
 import com.gmy.common.to.SkuHasStockVo;
 import com.gmy.common.utils.R;
 import com.gmy.common.vo.MemberResponseVo;
@@ -12,18 +13,23 @@ import com.gmy.guliorder.order.feign.WareFeignService;
 import com.gmy.guliorder.order.interceptor.LoginUserInterceptor;
 import com.gmy.guliorder.order.service.OrderService;
 import com.gmy.guliorder.order.vo.OrderConfirmVo;
+import com.gmy.guliorder.order.vo.OrderSubmitResponseVO;
+import com.gmy.guliorder.order.vo.OrderSubmitVO;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -49,6 +55,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Autowired
     WareFeignService wareFeignService;
+
+    @Autowired
+    StringRedisTemplate redisTemplate;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -95,7 +104,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                         .collect(Collectors.toMap(SkuHasStockVo::getSkuId, SkuHasStockVo::getStock));
                 confirmVo.setStocks(productStatus);
             }
-            
+
         });
 
 
@@ -106,12 +115,32 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         // 4. 其他计算
 
         // TODO:5.订单防止重复令牌
-
-
-
-
+        String uuid = UUID.randomUUID().toString().replace("-", "");
+        confirmVo.setOrderToken(uuid);
+        redisTemplate.opsForValue().set(OrderConstant.USER_TOKEN_PREFIX + memberResponseVo.getId(), uuid, 30, TimeUnit.MINUTES );
+        // 等待所有的异步任务完成。
         CompletableFuture.allOf(getAllAddressFuture, checkItemFuture).get();
         return confirmVo;
+    }
+
+    @Override
+    public OrderSubmitResponseVO submitOrder(OrderSubmitVO vo) {
+        MemberResponseVo member = LoginUserInterceptor.loginUser.get();
+        OrderSubmitResponseVO res = new OrderSubmitResponseVO();
+        //下单流程；创建订单，验证令牌，验证价格，锁库存
+        // 1.验证令牌
+        // 订单的令牌
+        String orderToken = vo.getOrderToken();
+        // redis里存的令牌
+        String tokenInRedis = redisTemplate.opsForValue().get(OrderConstant.USER_TOKEN_PREFIX + member.getId());
+        if (orderToken != null && orderToken.equals(tokenInRedis)){
+
+
+        }else {
+        }
+
+
+        return res;
     }
 
 

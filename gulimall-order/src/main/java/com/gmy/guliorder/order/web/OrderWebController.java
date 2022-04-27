@@ -2,6 +2,8 @@ package com.gmy.guliorder.order.web;
 
 import com.gmy.guliorder.order.service.OrderService;
 import com.gmy.guliorder.order.vo.OrderConfirmVo;
+import com.gmy.guliorder.order.vo.OrderSubmitResponseVO;
+import com.gmy.guliorder.order.vo.OrderSubmitVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,4 +25,16 @@ public class OrderWebController {
         model.addAttribute("orderConfirm", confirmVo);
         return "confirm";
     }
+
+    @GetMapping("/submitOrder")
+    public String submitOrder(OrderSubmitVO vo) {
+
+        OrderSubmitResponseVO res = orderService.submitOrder(vo);
+        if (res.getCode() == 0) {
+            return "pay";
+        }
+
+        return "redirect:http://order.gulimall.com/toTrade";
+    }
+
 }
