@@ -31,6 +31,10 @@ public class R extends HashMap<String, Object> {
 		return this;
 	}
 
+	public R setData(String key,Object data) {
+		put(key, data);
+		return this;
+	}
 
 	// 利用fastjson 逆转
 	public <T> T getData(TypeReference<T> typeReference){

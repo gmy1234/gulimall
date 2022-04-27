@@ -20,6 +20,7 @@ public class CartController {
     CartService cartService;
 
     @GetMapping("/currentUserCartItems")
+    @ResponseBody
     public List<CartItemVo> getCurrentUserCartItems(){
 
         return  cartService.getUserCartItems();

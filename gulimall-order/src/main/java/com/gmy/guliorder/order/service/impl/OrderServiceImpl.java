@@ -1,10 +1,14 @@
 package com.gmy.guliorder.order.service.impl;
 
+import com.alibaba.fastjson.TypeReference;
+import com.gmy.common.to.SkuHasStockVo;
+import com.gmy.common.utils.R;
 import com.gmy.common.vo.MemberResponseVo;
 import com.gmy.guliorder.order.dao.OrderDao;
 import com.gmy.guliorder.order.entity.OrderEntity;
 import com.gmy.guliorder.order.feign.CartFeignService;
 import com.gmy.guliorder.order.feign.MemberFeignService;
+import com.gmy.guliorder.order.feign.WareFeignService;
 import com.gmy.guliorder.order.interceptor.LoginUserInterceptor;
 import com.gmy.guliorder.order.service.OrderService;
 import com.gmy.guliorder.order.vo.OrderConfirmVo;
@@ -20,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -41,6 +46,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Autowired
     ThreadPoolExecutor executor;
+
+    @Autowired
+    WareFeignService wareFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -73,7 +81,22 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             // 2. 远程查询购物车所有选中的购物项
             List<OrderConfirmVo.OrderItemVO> cartItems = cartFeignService.getCurrentUserCartItems();
             confirmVo.setItems(cartItems);
-        }, executor);
+        }, executor).thenRunAsync( ()->{
+            List<OrderConfirmVo.OrderItemVO> items = confirmVo.getItems();
+            List<Long> skuIds = items.stream()
+                    .map(OrderConfirmVo.OrderItemVO::getSkuId)
+                    .collect(Collectors.toList());
+            // 查询商品ID对应的库存状态
+            R skuHasStock = wareFeignService.getSkuHasStock(skuIds);
+            List<SkuHasStockVo> data = skuHasStock.getData(new TypeReference<List<SkuHasStockVo>>() {});
+            if (data != null) {
+                // 库存数据 转换成 map
+                Map<Long, Boolean> productStatus = data.stream()
+                        .collect(Collectors.toMap(SkuHasStockVo::getSkuId, SkuHasStockVo::getStock));
+                confirmVo.setStocks(productStatus);
+            }
+            
+        });
 
 
         // 3.用户的积分
@@ -84,11 +107,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         // TODO:5.订单防止重复令牌
 
+
+
+
         CompletableFuture.allOf(getAllAddressFuture, checkItemFuture).get();
-
-
-
-
         return confirmVo;
     }
 

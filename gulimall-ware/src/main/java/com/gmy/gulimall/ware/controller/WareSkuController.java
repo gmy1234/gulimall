@@ -29,7 +29,7 @@ public class WareSkuController {
     private WareSkuService wareSkuService;
 
     /**
-     * 列表
+     * 检查sku 是否有库存
      */
     @PostMapping("/hasstock")
     // @RequiresPermissions("ware:waresku:list")
