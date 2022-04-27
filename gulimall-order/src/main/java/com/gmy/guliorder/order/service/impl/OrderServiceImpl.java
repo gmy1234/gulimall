@@ -17,14 +17,17 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gmy.common.utils.PageUtils;
 import com.gmy.common.utils.Query;
-
-
-
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 
 @Service("orderService")
@@ -36,6 +39,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     @Autowired
     CartFeignService cartFeignService;
 
+    @Autowired
+    ThreadPoolExecutor executor;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -48,17 +53,29 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     }
 
     @Override
-    public OrderConfirmVo confirmOrder() {
+    public OrderConfirmVo confirmOrder() throws ExecutionException, InterruptedException {
         OrderConfirmVo confirmVo = new OrderConfirmVo();
-
         MemberResponseVo memberResponseVo = LoginUserInterceptor.loginUser.get();
 
-        // 1. 远程查询 所有的收获列表
-        List<OrderConfirmVo.MemberAddressVO> userAddress = memberFeignService.getAddressById(memberResponseVo.getId());
-        confirmVo.setAddress(userAddress);
-        // 2. 远程查询购物车所有选中的购物项
-        List<OrderConfirmVo.OrderItemVO> cartItems = cartFeignService.getCurrentUserCartItems();
-        confirmVo.setItems(cartItems);
+        // 解决异步调用请求头丢失问题
+        // 从主线程那数据，副线程共享
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+
+        CompletableFuture<Void> getAllAddressFuture = CompletableFuture.runAsync(() -> {
+            RequestContextHolder.setRequestAttributes(requestAttributes);
+            // 1. 远程查询 所有的收获列表
+            List<OrderConfirmVo.MemberAddressVO> userAddress = memberFeignService.getAddressById(memberResponseVo.getId());
+            confirmVo.setAddress(userAddress);
+        }, executor);
+
+        CompletableFuture<Void> checkItemFuture = CompletableFuture.runAsync(() -> {
+            RequestContextHolder.setRequestAttributes(requestAttributes);
+            // 2. 远程查询购物车所有选中的购物项
+            List<OrderConfirmVo.OrderItemVO> cartItems = cartFeignService.getCurrentUserCartItems();
+            confirmVo.setItems(cartItems);
+        }, executor);
+
+
         // 3.用户的积分
         Integer integration = memberResponseVo.getIntegration();
         confirmVo.setIntegration(integration);
@@ -66,6 +83,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         // 4. 其他计算
 
         // TODO:5.订单防止重复令牌
+
+        CompletableFuture.allOf(getAllAddressFuture, checkItemFuture).get();
 
 
 
