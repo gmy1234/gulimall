@@ -28,7 +28,9 @@ public enum BizCodeEnume {
 
     ACCOUNT_PASSWORD_EXCEPTION(15003, "账号或密码错误"),
 
-    LOGIN_ACCOUNT_PASSWORD_EXCEPTION(16000, "密码错误");
+    LOGIN_ACCOUNT_PASSWORD_EXCEPTION(16000, "密码错误"),
+
+    NO_STOCK_EXCEPTION(250000, "密码错误");
 
     private int code;
     private String msg;

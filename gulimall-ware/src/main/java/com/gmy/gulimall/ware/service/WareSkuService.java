@@ -33,6 +33,6 @@ public interface WareSkuService extends IService<WareSkuEntity> {
      * @param vo
      * @return
      */
-    List<LockStockResultVo> lockCount(WareSkuLockVo vo);
+    boolean lockCount(WareSkuLockVo vo);
 }
 

@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.alibaba.fastjson.serializer.BigDecimalCodec;
+import com.gmy.common.exception.BizCodeEnume;
 import com.gmy.common.to.SkuHasStockVo;
 import com.gmy.gulimall.ware.vo.LockStockResultVo;
 import com.gmy.gulimall.ware.vo.WareSkuLockVo;
@@ -37,9 +39,11 @@ public class WareSkuController {
      */
     @PostMapping("/lock")
     public R orderLock(WareSkuLockVo vo){
-        List<LockStockResultVo> res = wareSkuService.lockCount(vo);
-
-        return R.ok().setData(res);
+        boolean res = wareSkuService.lockCount(vo);
+        if (res) {
+            return R.ok();
+        }
+        return R.error(BizCodeEnume.NO_STOCK_EXCEPTION.getCode(), BizCodeEnume.NO_STOCK_EXCEPTION.getMsg());
     }
 
 

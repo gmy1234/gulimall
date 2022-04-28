@@ -146,6 +146,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     public OrderSubmitResponseVO submitOrder(OrderSubmitVO vo) {
         MemberResponseVo member = LoginUserInterceptor.loginUser.get();
         OrderSubmitResponseVO res = new OrderSubmitResponseVO();
+        res.setCode(0);
         //下单流程；创建订单，验证令牌，验证价格，锁库存
         // 1.验证令牌 [令牌的对比和删除必须保证原子性]
         // 订单的令牌
@@ -194,9 +195,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                 R r = wareFeignService.orderLock(lockVo);
                 if (r.getCode() == 0) {
                     // 锁定成功
+                    return res;
                 }else {
                     // 失败
-                    
+                    res.setCode(3);
+                    return res;
                 }
 
             }

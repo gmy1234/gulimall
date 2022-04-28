@@ -31,6 +31,7 @@ public class OrderWebController {
 
         OrderSubmitResponseVO res = orderService.submitOrder(vo);
         if (res.getCode() == 0) {
+            // 下单成功
             return "pay";
         }
 
