@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.gmy.common.to.SkuHasStockVo;
+import com.gmy.gulimall.ware.vo.LockStockResultVo;
+import com.gmy.gulimall.ware.vo.WareSkuLockVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +29,19 @@ import com.gmy.common.utils.R;
 public class WareSkuController {
     @Autowired
     private WareSkuService wareSkuService;
+
+    /**
+     * 锁库存
+     * @param vo 需要的数据
+     * @return
+     */
+    @PostMapping("/lock")
+    public R orderLock(WareSkuLockVo vo){
+        List<LockStockResultVo> res = wareSkuService.lockCount(vo);
+
+        return R.ok().setData(res);
+    }
+
 
     /**
      * 检查sku 是否有库存

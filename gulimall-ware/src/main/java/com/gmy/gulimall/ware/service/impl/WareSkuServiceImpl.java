@@ -3,6 +3,8 @@ package com.gmy.gulimall.ware.service.impl;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.gmy.common.to.SkuHasStockVo;
+import com.gmy.gulimall.ware.vo.LockStockResultVo;
+import com.gmy.gulimall.ware.vo.WareSkuLockVo;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -60,6 +62,11 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
                 })
                 .collect(Collectors.toList());
         return data;
+    }
+
+    @Override
+    public List<LockStockResultVo> lockCount(WareSkuLockVo vo) {
+        return null;
     }
 
 }

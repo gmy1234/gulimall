@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.gmy.common.to.SkuHasStockVo;
 import com.gmy.common.utils.PageUtils;
 import com.gmy.gulimall.ware.entity.WareSkuEntity;
+import com.gmy.gulimall.ware.vo.LockStockResultVo;
+import com.gmy.gulimall.ware.vo.WareSkuLockVo;
 
 import java.util.List;
 import java.util.Map;
@@ -25,5 +27,12 @@ public interface WareSkuService extends IService<WareSkuEntity> {
      * @return 集合
      */
     List<SkuHasStockVo> getSkuHasStock(List<Long> skuIds);
+
+    /**
+     * 为某个订单锁库存
+     * @param vo
+     * @return
+     */
+    List<LockStockResultVo> lockCount(WareSkuLockVo vo);
 }
 
