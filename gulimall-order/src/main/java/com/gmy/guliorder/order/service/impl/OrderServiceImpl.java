@@ -162,7 +162,16 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             // 验证失败
             res.setCode(1);
         }else {
-            this.createOrder(vo);
+            // 创建订单项
+            OrderCreateTo order = this.createOrder();
+
+            // 3.比较价格
+            BigDecimal payAmount = order.getOrder().getPayAmount();
+            BigDecimal payPrice = vo.getPayPrice();
+            if (Math.abs(payAmount.subtract(payPrice).doubleValue()) < 0.01) {
+                // 价格无误：
+                
+            }
 
         }
 
@@ -170,7 +179,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return res;
     }
 
-    private OrderCreateTo createOrder(OrderSubmitVO vo){
+    /**
+     *  创建订单（总）
+     * @return
+     */
+    private OrderCreateTo createOrder(){
         OrderCreateTo order = new OrderCreateTo();
         // 设置订单ID
         String  orderSn =  IdWorker.getTimeId();
@@ -182,9 +195,41 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         List<OrderItemEntity> orderItems = buildOrderItems(orderSn);
 
         // 3.验证价格
+        computePrice(orderEntity, orderItems);
 
-
+        order.setOrder(orderEntity);
+        order.setOrderItems(orderItems);
         return order;
+    }
+
+    private void computePrice(OrderEntity order, List<OrderItemEntity> orderItems) {
+        BigDecimal totalAmount = BigDecimal.ZERO;   // 订单总金额
+
+        BigDecimal promotionAmount = BigDecimal.ZERO;   // 商品促销分解金额
+        BigDecimal integrationAmount = BigDecimal.ZERO; // 积分优惠分解金额
+        BigDecimal couponAmount = BigDecimal.ZERO;  // 优惠券优惠分解金额
+
+        int integration = 0;    // 赠送积分
+        int growth = 0; // 赠送成长值
+
+        for (OrderItemEntity orderItem : orderItems) {
+            totalAmount = totalAmount.add(orderItem.getRealAmount());
+            promotionAmount = promotionAmount.add(orderItem.getPromotionAmount());
+            integrationAmount = integrationAmount.add(orderItem.getIntegrationAmount());
+            couponAmount = couponAmount.add(orderItem.getCouponAmount());
+            integration += orderItem.getGiftIntegration();
+            growth += orderItem.getGiftGrowth();
+        }
+
+        order.setTotalAmount(totalAmount);
+        order.setFreightAmount(totalAmount.compareTo(OrderConstant.FREE_FREIGHT_PRICE) >= 0 ? BigDecimal.ZERO
+                : OrderConstant.FREIGHT);
+        order.setPayAmount(totalAmount.add(order.getFreightAmount()));
+        order.setPromotionAmount(promotionAmount);
+        order.setIntegrationAmount(integrationAmount);
+        order.setCouponAmount(couponAmount);
+        order.setIntegration(integration);
+        order.setGrowth(growth);
     }
 
     /**
