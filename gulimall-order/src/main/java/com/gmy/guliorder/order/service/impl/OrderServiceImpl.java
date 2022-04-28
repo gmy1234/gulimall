@@ -13,16 +13,20 @@ import com.gmy.guliorder.order.feign.WareFeignService;
 import com.gmy.guliorder.order.interceptor.LoginUserInterceptor;
 import com.gmy.guliorder.order.service.OrderService;
 import com.gmy.guliorder.order.vo.OrderConfirmVo;
+import com.gmy.guliorder.order.vo.OrderCreateTo;
 import com.gmy.guliorder.order.vo.OrderSubmitResponseVO;
 import com.gmy.guliorder.order.vo.OrderSubmitVO;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -128,21 +132,37 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         MemberResponseVo member = LoginUserInterceptor.loginUser.get();
         OrderSubmitResponseVO res = new OrderSubmitResponseVO();
         //下单流程；创建订单，验证令牌，验证价格，锁库存
-        // 1.验证令牌
+        // 1.验证令牌 [令牌的对比和删除必须保证原子性]
         // 订单的令牌
         String orderToken = vo.getOrderToken();
-        // redis里存的令牌
-        String tokenInRedis = redisTemplate.opsForValue().get(OrderConstant.USER_TOKEN_PREFIX + member.getId());
-        if (orderToken != null && orderToken.equals(tokenInRedis)){
+        // 这段脚本的意思是，如果获取key对应的value是传过来的值，那就调用删除方法返回1，否则返回0
+        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        // 原子删锁
+        /*
+            实现RedisScript接口的实现类(脚本内容,执行完之后的返回值类型)
+            一个存key的list
+            要对比的value
+         */
+        Long result = redisTemplate.execute(new DefaultRedisScript<>(script, Long.class),
+                Arrays.asList(OrderConstant.USER_TOKEN_PREFIX + member.getId(), orderToken));
 
-
+        // 校验令牌：
+        if (result == 0L) {
+            // 验证失败
+            res.setCode(1);
         }else {
+
         }
 
-
+        res.setCode(2);
         return res;
     }
 
+    private OrderCreateTo createOrder(){
+        OrderCreateTo order = new OrderCreateTo();
+
+        return order;
+    }
 
     /**
      * 监听消息 @RabbitListener 注解
