@@ -17,6 +17,12 @@ spring:
   application:
     name: gulimall-ware
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    virtual-host: /
+
+
 
 # mybatis-plus
 mybatis-plus:
