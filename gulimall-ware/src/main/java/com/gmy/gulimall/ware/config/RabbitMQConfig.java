@@ -69,7 +69,7 @@ public class RabbitMQConfig {
 
         return new Binding("stock.delay.queue",
                 Binding.DestinationType.QUEUE,
-                "order-event-exchange",
+                "stock-event-exchange",
                 "stock.lock.#",
                 null);
     }

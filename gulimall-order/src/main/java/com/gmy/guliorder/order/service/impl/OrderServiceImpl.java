@@ -188,9 +188,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                     itemVO.setCount(it.getSkuQuantity());
                     return itemVO;
                 }).collect(Collectors.toList());
-                // 设置说库存
+                // 设置锁库存
                 lockVo.setLocks(locks);
-
+                // TODO: 远程锁库存，
+                // 库存成功， 网络原因，业务失败，订单回滚，库存不回滚，之前锁定的库存就要解锁。我们要自动解锁。
                 // 远程调用锁定库存功能
                 R r = wareFeignService.orderLock(lockVo);
                 if (r.getCode() == 0) {

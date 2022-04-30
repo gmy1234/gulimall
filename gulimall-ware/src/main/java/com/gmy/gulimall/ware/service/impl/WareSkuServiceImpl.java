@@ -4,12 +4,18 @@ import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.gmy.common.to.SkuHasStockVo;
+import com.gmy.common.to.mq.StockLockedTo;
+import com.gmy.gulimall.ware.entity.WareOrderTaskDetailEntity;
+import com.gmy.gulimall.ware.entity.WareOrderTaskEntity;
 import com.gmy.gulimall.ware.exception.NoStockException;
+import com.gmy.gulimall.ware.service.WareOrderTaskDetailService;
+import com.gmy.gulimall.ware.service.WareOrderTaskService;
 import com.gmy.gulimall.ware.vo.LockStockResultVo;
 import com.gmy.gulimall.ware.vo.OrderConfirmVo;
 import com.gmy.gulimall.ware.vo.WareSkuLockVo;
 import lombok.Data;
 import org.checkerframework.checker.units.qual.A;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +40,15 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
 
     @Autowired
     WareSkuDao wareSkuDao;
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    WareOrderTaskService wareOrderTaskService;
+
+    @Autowired
+    WareOrderTaskDetailService wareOrderTaskDetailService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -80,8 +95,14 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
      * @return
      */
     @Override
-    @Transactional(rollbackFor = NoStockException.class)
     public boolean lockCount(WareSkuLockVo vo) {
+
+        /**
+         * 保存 库存工作单的详情
+         */
+        WareOrderTaskEntity taskEntity = new WareOrderTaskEntity();
+        taskEntity.setOrderSn(vo.getOrderSn());
+        wareOrderTaskService.save(taskEntity);
 
         // 1. 找到 每个商品 在哪里都有库存
         List<OrderConfirmVo.OrderItemVO> locks = vo.getLocks();
@@ -108,8 +129,18 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
 
                     Long count = wareSkuDao.lockSkuStock(skuId, wareId, ware.getNum());
                     if (count == 1) {
-                        // 成功
+                        // 锁库存成功
                         skuStocked = true;
+                        // TODO: 告诉MQ，库存锁定成功
+                        WareOrderTaskDetailEntity taskDetail = new WareOrderTaskDetailEntity(null, skuId, "",
+                                ware.getNum(), taskEntity.getId(), wareId, 1);
+                        wareOrderTaskDetailService.save(taskDetail);
+
+                        StockLockedTo lockedTo = new StockLockedTo();
+                        lockedTo.setId(taskDetail.getId());
+                        lockedTo.setDetailId(taskDetail.getTaskId());
+                        rabbitTemplate.convertAndSend("stock-event-exchange",
+                                "stock.locked", lockedTo);
                         break;
                     }
 

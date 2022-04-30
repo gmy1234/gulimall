@@ -43,7 +43,8 @@ public class WareSkuController {
         if (res) {
             return R.ok();
         }
-        return R.error(BizCodeEnume.NO_STOCK_EXCEPTION.getCode(), BizCodeEnume.NO_STOCK_EXCEPTION.getMsg());
+        return R.error(BizCodeEnume.NO_STOCK_EXCEPTION.getCode(),
+                BizCodeEnume.NO_STOCK_EXCEPTION.getMsg());
     }
 
 
